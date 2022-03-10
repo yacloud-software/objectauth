@@ -1,0 +1,151 @@
+syntax = "proto3";
+
+package objectauth;
+option java_package = "net.conradwood.golang.apis.objectauth";
+import "golang.conradwood.net/apis/common/common.proto";
+import "golang.conradwood.net/apis/auth/auth.proto";
+
+enum OBJECTTYPE {
+  UNDEFINED = 0;
+  Service = 1;
+  Artefact = 2;
+  GitRepository = 3;
+  SingingCatModule = 4;
+  Proto = 5;
+  Domain = 6;
+}
+
+
+enum COMPOSITETYPE {
+  COMP_UNDEFINED=0;
+  Software=1; // repo, proto, artefact...
+}
+
+/* composite types are some that include multiple, related objecttpyes, for example, a git repository and its artefacts and protos. in this case the ID is specific to _something_ in the composite relationships, in the example above, it is the "git repository id", from which the others are derived
+ */
+message GroupToComposite {
+  uint64 ID = 1;
+  COMPOSITETYPE ObjectType = 2;
+  uint64 ObjectID = 3;
+  string GroupID = 4;
+  bool Active = 5;  // ignored if this is not "true"
+  bool Read = 6;    // is a user allowed to 'read' the object? what 'read' means, depends on the object
+  bool Write = 7;   // is a user allowed to 'write' to the object? what 'write' means, depends on the object
+  bool Execute = 8; // is a user allowed to 'execute' the object? what 'execute' means, depends on the object, typically admin right
+  bool View = 9;    // is a user allowed to know if object exists or not
+}
+
+  // database user to object acl
+message UserToObject {
+  uint64 ID = 1;
+  OBJECTTYPE ObjectType = 2;
+  uint64 ObjectID = 3;
+  string UserID = 4;
+  bool Active = 5;  // ignored if this is not "true"
+  bool Read = 6;    // is a user allowed to 'read' the object? what 'read' means, depends on the object
+  bool Write = 7;   // is a user allowed to 'write' to the object? what 'write' means, depends on the object
+  bool Execute = 8; // is a user allowed to 'execute' the object? what 'execute' means, depends on the object, typically admin rights
+  bool View = 9;    // is a user allowed to know if object exists or not
+}
+// database group to object acl
+message GroupToObject {
+  uint64 ID = 1;
+  OBJECTTYPE ObjectType = 2;
+  uint64 ObjectID = 3;
+  string GroupID = 4;
+  bool Active = 5;  // ignored if this is not "true"
+  bool Read = 6;    // is a group allowed to 'read' the object? what 'read' means, depends on the object
+  bool Write = 7;   // is a group allowed to 'write' to the object? what 'write' means, depends on the object
+  bool Execute = 8; // is a group allowed to 'execute' the object? what 'execute' means, depends on the object, typically admin rights
+  bool View = 9;    // is a group allowed to know if object exists or not
+}
+/*
+ * authenticate against objecttype and id. Using context to identify user
+ */
+message AuthRequest {
+  OBJECTTYPE ObjectType = 1; // the type of object we're authenticating. It should probably be an enum, but it's not clear yet
+  uint64 ObjectID = 2;       // yes, it's numeric!!! If the object does not have a numeric ID, it's broken and should be fixed.
+}
+
+message AuthResponse {
+  bool Granted = 1; // compatible mode. true if at least one of the permission bits is set
+  PermissionSet Permissions = 2;
+}
+
+message ObjectType {
+  OBJECTTYPE ObjectType = 1; // the type of object
+}
+message ObjectIDList {
+  repeated uint64 ObjectIDs = 1;
+}
+message GrantUserRequest {
+  OBJECTTYPE ObjectType = 1;
+  uint64 ObjectID = 2;
+  string UserID = 3;
+  bool Read = 4;    // is a user allowed to 'read' the object? what 'read' means, depends on the object
+  bool Write = 5;   // is a user allowed to 'write' to the object? what 'write' means, depends on the object
+  bool Execute = 6; // is a user allowed to 'execute' the object? what 'execute' means, depends on the object, typically admin rights
+  bool View = 7;    // is a user allowed to know if object exists or not
+}
+message GrantGroupRequest {
+  OBJECTTYPE ObjectType = 1;
+  uint64 ObjectID = 2;
+  string GroupID = 3;
+  bool Read = 4;    // is a user allowed to 'read' the object? what 'read' means, depends on the object
+  bool Write = 5;   // is a user allowed to 'write' to the object? what 'write' means, depends on the object
+  bool Execute = 6; // is a user allowed to 'execute' the object? what 'execute' means, depends on the object, typically admin rights
+  bool View = 7;    // is a user allowed to know if object exists or not
+}
+message PermissionSet {
+  bool Read = 1;    // is a user allowed to 'read' the object? what 'read' means, depends on the object
+  bool Write = 2;   // is a user allowed to 'write' to the object? what 'write' means, depends on the object
+  bool Execute = 3; // is a user allowed to 'execute' the object? what 'execute' means, depends on the object, typically admin rights
+  bool View = 4;    // is a user allowed to know if object exists or not
+}
+message AccessRightList {
+  OBJECTTYPE ObjectType = 1;
+  uint64 ObjectID = 2;
+  // GroupID to PermissionSet
+  map<string, PermissionSet> GroupPermissions = 3;
+  // UserID to Permission Set
+  map<string, PermissionSet> UserPermissions = 4;
+  PermissionSet EffectivePermissions=5;
+}
+message ResolveResponse {
+  AccessRightList AccessRightList=1;
+  auth.User User=2; // the user for which we resolved it
+}
+message IDGrantRequest {
+  uint64 ID=1;
+  string GroupID=2;
+  string UserID=3;
+  bool Read=4;
+  bool Write=5;
+}
+message ResolveRequest {
+  string UserID=1;
+  AuthRequest AuthRequest=2;
+}
+
+/*
+The "ObjectAuth" service encapsulates the logic of access rights to
+objects.
+ */
+service ObjectAuthService {
+  // ask if user has access to an object
+  rpc AskObjectAccess(AuthRequest) returns (AuthResponse);
+  // get all objects (of a given type) the current user has access to
+  rpc AvailableObjects(ObjectType) returns (ObjectIDList);
+  // grant access to a user. Currently this call is privileged for root users only
+  rpc GrantToUser(GrantUserRequest) returns (common.Void);
+  // grant access to a group. Currently this call is privileged for root users only
+  rpc GrantToGroup(GrantGroupRequest) returns (common.Void);
+  // grant access to me. Currently this call is privileged for root users only. Leave the userid field to 0
+  rpc GrantToMe(GrantUserRequest) returns (common.Void);
+  // get acessrights for a specific object
+  rpc GetRights(AuthRequest) returns (AccessRightList);
+  // give access to a sourcecode repository, its proto and its artefact
+  rpc GrantToSoftware(IDGrantRequest) returns (common.Void);
+  // privileged for admins - get permissions for a particular user (to check permissions)
+  rpc ResolveForUser(ResolveRequest) returns(ResolveResponse);
+}
