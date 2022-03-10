@@ -1,0 +1,7 @@
+objectauth authenticates access to objects using the triple
+objecttype, objectid, user
+
+*how* it does it is (and must remain) entirely opaque to the service(s)
+
+
+
