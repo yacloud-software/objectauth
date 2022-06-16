@@ -4,12 +4,12 @@ go 1.17
 
 require (
 	golang.conradwood.net/apis/artefact v1.1.1744
-	golang.conradwood.net/apis/auth v1.1.1744
-	golang.conradwood.net/apis/common v1.1.1744
+	golang.conradwood.net/apis/auth v1.1.1746
+	golang.conradwood.net/apis/common v1.1.1746
 	golang.conradwood.net/apis/objectauth v1.1.1702
 	golang.conradwood.net/apis/registry v1.1.1744
 	golang.conradwood.net/apis/rpcaclapi v1.1.1744
-	golang.conradwood.net/go-easyops v0.1.12609
+	golang.conradwood.net/go-easyops v0.1.12713
 	google.golang.org/grpc v1.47.0
 )
 
@@ -32,7 +32,7 @@ require (
 	golang.conradwood.net/apis/h2gproxy v1.1.1744 // indirect
 	golang.conradwood.net/apis/objectstore v1.1.1744 // indirect
 	golang.conradwood.net/apis/rpcinterceptor v1.1.1744 // indirect
-	golang.org/x/net v0.0.0-20220607020251-c690dde0001d // indirect
+	golang.org/x/net v0.0.0-20220615171555-694bf12d69de // indirect
 	golang.org/x/sys v0.0.0-20220610221304-9f5ed59c137d // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20220608133413-ed9918b62aac // indirect
