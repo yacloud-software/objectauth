@@ -13,6 +13,7 @@ enum OBJECTTYPE {
   SingingCatModule = 4;
   Proto = 5;
   Domain = 6;
+  UserAppFlags=7; // the flags for a singingcat userapp repo may or may not be secret
 }
 
 
@@ -132,7 +133,7 @@ The "ObjectAuth" service encapsulates the logic of access rights to
 objects.
  */
 service ObjectAuthService {
-  // ask if user has access to an object
+  // ask if calling user has access to an object
   rpc AskObjectAccess(AuthRequest) returns (AuthResponse);
   // get all objects (of a given type) the current user has access to
   rpc AvailableObjects(ObjectType) returns (ObjectIDList);
@@ -142,7 +143,7 @@ service ObjectAuthService {
   rpc GrantToGroup(GrantGroupRequest) returns (common.Void);
   // grant access to me. Currently this call is privileged for root users only. Leave the userid field to 0
   rpc GrantToMe(GrantUserRequest) returns (common.Void);
-  // get acessrights for a specific object
+  // get acessrights for calling user for a specific object
   rpc GetRights(AuthRequest) returns (AccessRightList);
   // give access to a sourcecode repository, its proto and its artefact
   rpc GrantToSoftware(IDGrantRequest) returns (common.Void);
