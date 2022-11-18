@@ -126,6 +126,10 @@ func (e *objectAuthServer) AskObjectAccess(ctx context.Context, req *pb.AuthRequ
 			return resp, nil
 		}
 	}
+	// TODO: HACK FOR USERAPPREPORIGHTS FLAGS
+	if req.ObjectType == pb.OBJECTTYPE_UserAppFlags {
+		req.ObjectType = pb.OBJECTTYPE_GitRepository
+	}
 	if HasAllAccess(u.ID, req.ObjectType) {
 		return &pb.AuthResponse{Granted: true, Permissions: &pb.PermissionSet{Read: true, Write: true, Execute: true, View: true}}, nil
 	}

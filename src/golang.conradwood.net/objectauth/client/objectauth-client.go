@@ -28,7 +28,7 @@ var (
 	groupid          = flag.String("groupid", "", "groupid to grant access to")
 	objectid         = flag.String("objectid", "", "object id to grant access for")
 	objecttype       = flag.String("objecttype", "", "object type to grant access")
-	check            = flag.Bool("check", false, "check access")
+	check            = flag.Bool("check", false, "check access for user specified by userid (needs root)")
 )
 
 func main() {
