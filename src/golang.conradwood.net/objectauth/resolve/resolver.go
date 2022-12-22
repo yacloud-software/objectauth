@@ -7,6 +7,7 @@ import (
 	pb "golang.conradwood.net/apis/objectauth"
 	ra "golang.conradwood.net/apis/rpcaclapi"
 	"golang.conradwood.net/go-easyops/tokens"
+	"golang.conradwood.net/go-easyops/utils"
 	"strconv"
 	"strings"
 )
@@ -14,25 +15,35 @@ import (
 func ResolveService(s string) (uint64, string, error) {
 	ctx := tokens.ContextWithToken()
 	rpcapi := ra.GetRPCACLServiceClient()
-	svs, err := rpcapi.GetServices(ctx, &common.Void{})
+	sir, err := rpcapi.ServiceNameToID(ctx, &ra.ServiceNameRequest{Name: s})
 	if err != nil {
+		fmt.Printf("ServiceNameToID(%s) failed: %s\n", s, utils.ErrorString(err))
 		return 0, "", err
 	}
-	matched := false
-	var sr *ra.Service
-	for _, sv := range svs.Services {
-		if strings.Contains(sv.Name, s) {
-			if matched {
-				return 0, "", fmt.Errorf("multiple matches for servicename")
-			}
-			matched = true
-			sr = sv
+	fmt.Printf("ServiceNameToID(%s) == %d\n", sir.ID)
+	return sir.ID, s, err
+
+	/*
+		svs, err := rpcapi.GetServices(ctx, &common.Void{})
+		if err != nil {
+			return 0, "", err
 		}
-	}
-	if !matched {
-		return 0, "", fmt.Errorf("no match for servicename")
-	}
-	return sr.ID, sr.Name, nil
+		matched := false
+		var sr *ra.Service
+		for _, sv := range svs.Services {
+			if strings.Contains(sv.Name, s) {
+				if matched {
+					return 0, "", fmt.Errorf("multiple matches for servicename")
+				}
+				matched = true
+				sr = sv
+			}
+		}
+		if !matched {
+			return 0, "", fmt.Errorf("no match for servicename")
+		}
+		return sr.ID, sr.Name, nil
+	*/
 }
 func ResolveArtefact(s string) (uint64, string, error) {
 	ctx := tokens.ContextWithToken()
