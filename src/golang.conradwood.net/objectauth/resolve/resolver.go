@@ -20,7 +20,7 @@ func ResolveService(s string) (uint64, string, error) {
 		fmt.Printf("ServiceNameToID(%s) failed: %s\n", s, utils.ErrorString(err))
 		return 0, "", err
 	}
-	fmt.Printf("ServiceNameToID(%s) == %d\n", sir.ID)
+	fmt.Printf("ServiceNameToID(%s) == %d\n", s, sir.ID)
 	return sir.ID, s, err
 
 	/*
