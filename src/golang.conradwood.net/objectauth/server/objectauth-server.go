@@ -13,7 +13,6 @@ import (
 	"golang.conradwood.net/go-easyops/prometheus"
 	"golang.conradwood.net/go-easyops/server"
 	"golang.conradwood.net/go-easyops/sql"
-	"golang.conradwood.net/go-easyops/tokens"
 	"golang.conradwood.net/go-easyops/utils"
 	"golang.conradwood.net/objectauth/db"
 	//	"golang.conradwood.net/objectauth/shared"
@@ -73,7 +72,7 @@ func main() {
 	os.Exit(0)
 }
 func migratedb() {
-	ctx := tokens.ContextWithToken()
+	ctx := authremote.Context()
 	tables := []string{"usertoobject", "grouptoobject"}
 	for _, t := range tables {
 		rows, err := psql.QueryContext(ctx, "mig1_"+t, "select id from "+t+" where read = false")

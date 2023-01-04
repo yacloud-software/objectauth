@@ -1,19 +1,19 @@
 package resolve
 
 import (
+    "golang.conradwood.net/go-easyops/authremote"
 	"fmt"
 	af "golang.conradwood.net/apis/artefact"
 	"golang.conradwood.net/apis/common"
 	pb "golang.conradwood.net/apis/objectauth"
 	ra "golang.conradwood.net/apis/rpcaclapi"
-	"golang.conradwood.net/go-easyops/tokens"
 	"golang.conradwood.net/go-easyops/utils"
 	"strconv"
 	"strings"
 )
 
 func ResolveService(s string) (uint64, string, error) {
-	ctx := tokens.ContextWithToken()
+	ctx := authremote.Context()
 	rpcapi := ra.GetRPCACLServiceClient()
 	sir, err := rpcapi.ServiceNameToID(ctx, &ra.ServiceNameRequest{Name: s})
 	if err != nil {
@@ -46,7 +46,7 @@ func ResolveService(s string) (uint64, string, error) {
 	*/
 }
 func ResolveArtefact(s string) (uint64, string, error) {
-	ctx := tokens.ContextWithToken()
+	ctx := authremote.Context()
 	afClient := af.GetArtefactServiceClient()
 	afs, err := afClient.List(ctx, &common.Void{})
 	if err != nil {
