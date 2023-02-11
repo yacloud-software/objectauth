@@ -13,7 +13,7 @@ import (
 func resolve_user_rights(ctx context.Context, req *pb.AuthRequest) (*pb.AccessRightList, error) {
 	user := auth.GetUser(ctx)
 	if user == nil {
-		return nil, errors.Unauthenticated(ctx, "please log in")
+		return nil, errors.Unauthenticated(ctx, "resolve_user_rights")
 	}
 	userid := user.ID
 	groups := user.Groups
