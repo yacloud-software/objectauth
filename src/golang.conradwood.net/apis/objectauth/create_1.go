@@ -1,8 +1,15 @@
 // client create: ObjectAuthServiceClient
+/*
+  Created by /home/cnw/devel/go/go-tools/src/golang.conradwood.net/gotools/protoc-gen-cnw/protoc-gen-cnw.go
+*/
+
 /* geninfo:
    filename  : protos/golang.conradwood.net/apis/objectauth/objectauth.proto
    gopackage : golang.conradwood.net/apis/objectauth
    importname: ai_0
+   clientfunc: GetObjectAuthService
+   serverfunc: NewObjectAuthService
+   lookupfunc: ObjectAuthServiceLookupID
    varname   : client_ObjectAuthServiceClient_0
    clientname: ObjectAuthServiceClient
    servername: ObjectAuthServiceServer
@@ -33,7 +40,7 @@ func GetObjectAuthClient() ObjectAuthServiceClient {
        return client_ObjectAuthServiceClient_0
     }
 
-    client_ObjectAuthServiceClient_0 = NewObjectAuthServiceClient(client.Connect("objectauth.ObjectAuthService"))
+    client_ObjectAuthServiceClient_0 = NewObjectAuthServiceClient(client.Connect(ObjectAuthServiceLookupID()))
     lock_ObjectAuthServiceClient_0.Unlock()
     return client_ObjectAuthServiceClient_0
 }
@@ -49,8 +56,9 @@ func GetObjectAuthServiceClient() ObjectAuthServiceClient {
        return client_ObjectAuthServiceClient_0
     }
 
-    client_ObjectAuthServiceClient_0 = NewObjectAuthServiceClient(client.Connect("objectauth.ObjectAuthService"))
+    client_ObjectAuthServiceClient_0 = NewObjectAuthServiceClient(client.Connect(ObjectAuthServiceLookupID()))
     lock_ObjectAuthServiceClient_0.Unlock()
     return client_ObjectAuthServiceClient_0
 }
 
+func ObjectAuthServiceLookupID() string { return "objectauth.ObjectAuthService" } // returns the ID suitable for lookup in the registry. treat as opaque, subject to change.
