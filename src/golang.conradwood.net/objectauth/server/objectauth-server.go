@@ -556,10 +556,11 @@ func extraService(ctx context.Context, t pb.OBJECTTYPE) bool {
 		fmt.Printf("No extra service at all\n")
 		return false
 	}
-	if svc.ID == "3539" && t == pb.OBJECTTYPE_GitRepository { //repobuilder
+	ruid := auth.GetServiceIDByName("repobuilder.RepoBuilder")
+	if svc.ID == ruid && t == pb.OBJECTTYPE_GitRepository { //repobuilder
 		return true
 	}
-	if svc.ID == "3539" && t == pb.OBJECTTYPE_Artefact { //repobuilder
+	if svc.ID == ruid && t == pb.OBJECTTYPE_Artefact { //repobuilder
 		return true
 	}
 	if svc.ID == "145" && t == pb.OBJECTTYPE_SingingCatModule { //scweb
