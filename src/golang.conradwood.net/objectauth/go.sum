@@ -28,6 +28,8 @@ github.com/prometheus/procfs v0.10.1/go.mod h1:nwNm2aOCAYw8uTR/9bWRREkZFxAUcWzPH
 github.com/rogpeppe/go-internal v1.10.0 h1:TMyTOH3F/DB16zRVcYyreMH6GnZZrwQVAoYjRBZyWFQ=
 golang.conradwood.net/apis/artefact v1.1.2238 h1:1tzVWSiTj9Wru+qU2se1CiDdQyV5uO2ihfHqP0jdP08=
 golang.conradwood.net/apis/artefact v1.1.2238/go.mod h1:wme5+KePZni6y167ZEMPLvb9tZHCV9Dd2UzG2TngZZQ=
+golang.conradwood.net/apis/artefact v1.1.2309 h1:ZMb+CoEsiNJLB/8AmuEipVaxiMURKqaZHOZlnKdIdpA=
+golang.conradwood.net/apis/artefact v1.1.2309/go.mod h1:Q2omK4RzUHfHOWFQOIQ6Z/bV4HJs2BjvG1LoIG8KYyY=
 golang.conradwood.net/apis/auth v1.1.2309 h1:q4HYkwp3CVB6NgrAZf9U6h9lIeSI/FuSC0dG2UPCChw=
 golang.conradwood.net/apis/auth v1.1.2309/go.mod h1:BwI1BZ2OHt4K3oql7cb6YTBhApDIgb5YF9S/SqYWRUc=
 golang.conradwood.net/apis/autodeployer v1.1.2309 h1:mB9M+yoql/8GTapi+6MIEy9c6X8nIJdyXJZUXdwkdas=
@@ -46,12 +48,16 @@ golang.conradwood.net/apis/goeasyops v1.1.2309 h1:Yo4dW+AAAuGL3aXemsHdPbXdP+DPJg
 golang.conradwood.net/apis/goeasyops v1.1.2309/go.mod h1:fv3CkNwGHWGZvluZNpgcEuNoWcJJHUCF6nbkGshxnlw=
 golang.conradwood.net/apis/h2gproxy v1.1.2238 h1:mh/4fs8UINsy4GIQ3+s5Rn6epjJaMbRJ/V5mwMETzZU=
 golang.conradwood.net/apis/h2gproxy v1.1.2238/go.mod h1:tYQRHZCklGw2mklNJVdf1TjylWM5J/0QslOnRoe5hxc=
+golang.conradwood.net/apis/h2gproxy v1.1.2309 h1:to1wCBxQeOOWAvsnDVzImDQMssvbWC2J0JdqrTqZvWE=
+golang.conradwood.net/apis/h2gproxy v1.1.2309/go.mod h1:EpcWZmImdIF4FgP4ojBVeKFWlqdwB9pRsZPQ1YHVSQ8=
 golang.conradwood.net/apis/objectstore v1.1.2309 h1:xaT8c5iv5Wgl9lkdxqzWIcZPFuJoPQTaNmEey+7ZOTI=
 golang.conradwood.net/apis/objectstore v1.1.2309/go.mod h1:ID0u2dD28KoJKhzO7J23ol5VgiiiW85Ub6LV+tVwYfQ=
 golang.conradwood.net/apis/registry v1.1.2309 h1:v+HtElP90AvkeBEzBbhujHJa42WcupxqrI5RF84+5bU=
 golang.conradwood.net/apis/registry v1.1.2309/go.mod h1:7zh/bdqvVmquzSxn3gidsaz0cu2XLX2zrLerXyM2l+0=
 golang.conradwood.net/apis/rpcaclapi v1.1.2238 h1:+vsFN99ARHAWFxj/VT3l+p5sRiMyqNiKsnVHYmcelto=
 golang.conradwood.net/apis/rpcaclapi v1.1.2238/go.mod h1:rdwz48mxOvMxOaVZ+akZPFWKZ2jNX4mr1ha7QvqTGak=
+golang.conradwood.net/apis/rpcaclapi v1.1.2309 h1:aZewJVV9Bnjd3V+5DhbrRph7zKgApjy72ekN8/Sx85k=
+golang.conradwood.net/apis/rpcaclapi v1.1.2309/go.mod h1:ugpQcVi4LAQwDFLE5wVJBUEYS1UBQQgHWyRgC1Zoifs=
 golang.conradwood.net/apis/rpcinterceptor v1.1.2309 h1:YI44HUoA2dkUGhfI58q6p5eJueoSunauVV8A2DESm5U=
 golang.conradwood.net/apis/rpcinterceptor v1.1.2309/go.mod h1:PlaSdGFeaJP0y+tHicV9+jpjZ1yddzoG4T8S5Dxx65E=
 golang.conradwood.net/go-easyops v0.1.17806 h1:lHLujHJ4mB4f6jc58YQ2TyRiIqEkqxeqYUpYzdhyUJM=

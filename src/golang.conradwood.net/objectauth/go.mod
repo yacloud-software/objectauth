@@ -3,12 +3,12 @@ module golang.conradwood.net/objectauth
 go 1.18
 
 require (
-	golang.conradwood.net/apis/artefact v1.1.2238
+	golang.conradwood.net/apis/artefact v1.1.2309
 	golang.conradwood.net/apis/auth v1.1.2309
 	golang.conradwood.net/apis/common v1.1.2309
 	golang.conradwood.net/apis/objectauth v1.1.1702
 	golang.conradwood.net/apis/registry v1.1.2309
-	golang.conradwood.net/apis/rpcaclapi v1.1.2238
+	golang.conradwood.net/apis/rpcaclapi v1.1.2309
 	golang.conradwood.net/go-easyops v0.1.17806
 	google.golang.org/grpc v1.55.0
 )
@@ -30,7 +30,7 @@ require (
 	golang.conradwood.net/apis/errorlogger v1.1.2309 // indirect
 	golang.conradwood.net/apis/framework v1.1.2309 // indirect
 	golang.conradwood.net/apis/goeasyops v1.1.2309 // indirect
-	golang.conradwood.net/apis/h2gproxy v1.1.2238 // indirect
+	golang.conradwood.net/apis/h2gproxy v1.1.2309 // indirect
 	golang.conradwood.net/apis/objectstore v1.1.2309 // indirect
 	golang.conradwood.net/apis/rpcinterceptor v1.1.2309 // indirect
 	golang.org/x/net v0.11.0 // indirect
