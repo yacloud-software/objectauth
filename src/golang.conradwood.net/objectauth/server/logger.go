@@ -16,3 +16,13 @@ func logDenied(ctx context.Context, u *apb.User, object_type pb.OBJECTTYPE, obje
 		object_type, pb.OBJECTTYPE_name[int32(object_type)],
 	)
 }
+func log_grant(ctx context.Context, uto *pb.UserToObject) {
+	object_type := uto.ObjectType
+	object_id := uto.ObjectID
+	userid := uto.UserID
+	s := "Granted"
+	if !uto.Active {
+		s = "Removed"
+	}
+	fmt.Printf("%s rights on object %s (id %d) to user %d\n", s, pb.OBJECTTYPE_name[int32(object_type)], object_id, userid)
+}

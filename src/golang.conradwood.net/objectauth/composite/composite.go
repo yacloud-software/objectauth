@@ -2,8 +2,13 @@ package composite
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	pb "golang.conradwood.net/apis/objectauth"
+)
+
+var (
+	debug = flag.Bool("debug_composite", false, "debug composite handler")
 )
 
 type Composite interface {
@@ -20,5 +25,8 @@ func GetComposite(t pb.OBJECTTYPE) Composite {
 }
 
 func Debugf(format string, args ...interface{}) {
+	if !*debug {
+		return
+	}
 	fmt.Printf("[composite] "+format, args...)
 }

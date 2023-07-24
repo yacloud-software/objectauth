@@ -353,6 +353,7 @@ func (e *objectAuthServer) GrantToUser(ctx context.Context, req *pb.GrantUserReq
 	if err != nil {
 		return nil, err
 	}
+	log_grant(ctx, uto)
 	return &common.Void{}, nil
 }
 
