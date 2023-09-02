@@ -19,14 +19,14 @@ Main Table:
  CREATE TABLE usertoobject (id integer primary key default nextval('usertoobject_seq'),objecttype integer not null  ,objectid bigint not null  ,userid text not null  ,active boolean not null  ,read boolean not null  ,write boolean not null  ,execute boolean not null  ,view boolean not null  );
 
 Alter statements:
-ALTER TABLE usertoobject ADD COLUMN objecttype integer not null default 0;
-ALTER TABLE usertoobject ADD COLUMN objectid bigint not null default 0;
-ALTER TABLE usertoobject ADD COLUMN userid text not null default '';
-ALTER TABLE usertoobject ADD COLUMN active boolean not null default false;
-ALTER TABLE usertoobject ADD COLUMN read boolean not null default false;
-ALTER TABLE usertoobject ADD COLUMN write boolean not null default false;
-ALTER TABLE usertoobject ADD COLUMN execute boolean not null default false;
-ALTER TABLE usertoobject ADD COLUMN view boolean not null default false;
+ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS objecttype integer not null default 0;
+ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS objectid bigint not null default 0;
+ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS userid text not null default '';
+ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS active boolean not null default false;
+ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS read boolean not null default false;
+ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS write boolean not null default false;
+ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS execute boolean not null default false;
+ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS view boolean not null default false;
 
 
 Archive Table: (structs can be moved from main to archive using Archive() function)
@@ -89,7 +89,7 @@ func (a *DBUserToObject) Archive(ctx context.Context, id uint64) error {
 	}
 
 	// now save it to archive:
-	_, e := a.DB.ExecContext(ctx, "archive_DBUserToObject", "insert into "+a.SQLArchivetablename+"+ (id,objecttype, objectid, userid, active, read, write, execute, view) values ($1,$2, $3, $4, $5, $6, $7, $8, $9) ", p.ID, p.ObjectType, p.ObjectID, p.UserID, p.Active, p.Read, p.Write, p.Execute, p.View)
+	_, e := a.DB.ExecContext(ctx, "archive_DBUserToObject", "insert into "+a.SQLArchivetablename+" (id,objecttype, objectid, userid, active, read, write, execute, view) values ($1,$2, $3, $4, $5, $6, $7, $8, $9) ", p.ID, p.ObjectType, p.ObjectID, p.UserID, p.Active, p.Read, p.Write, p.Execute, p.View)
 	if e != nil {
 		return e
 	}
@@ -153,10 +153,31 @@ func (a *DBUserToObject) ByID(ctx context.Context, p uint64) (*savepb.UserToObje
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByID: error scanning (%s)", e))
 	}
 	if len(l) == 0 {
-		return nil, a.Error(ctx, qn, fmt.Errorf("No UserToObject with id %d", p))
+		return nil, a.Error(ctx, qn, fmt.Errorf("No UserToObject with id %v", p))
 	}
 	if len(l) != 1 {
-		return nil, a.Error(ctx, qn, fmt.Errorf("Multiple (%d) UserToObject with id %d", len(l), p))
+		return nil, a.Error(ctx, qn, fmt.Errorf("Multiple (%d) UserToObject with id %v", len(l), p))
+	}
+	return l[0], nil
+}
+
+// get it by primary id (nil if no such ID row, but no error either)
+func (a *DBUserToObject) TryByID(ctx context.Context, p uint64) (*savepb.UserToObject, error) {
+	qn := "DBUserToObject_TryByID"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,objecttype, objectid, userid, active, read, write, execute, view from "+a.SQLTablename+" where id = $1", p)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("TryByID: error querying (%s)", e))
+	}
+	defer rows.Close()
+	l, e := a.FromRows(ctx, rows)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("TryByID: error scanning (%s)", e))
+	}
+	if len(l) == 0 {
+		return nil, nil
+	}
+	if len(l) != 1 {
+		return nil, a.Error(ctx, qn, fmt.Errorf("Multiple (%d) UserToObject with id %v", len(l), p))
 	}
 	return l[0], nil
 }
@@ -466,14 +487,42 @@ func (a *DBUserToObject) FromRows(ctx context.Context, rows *gosql.Rows) ([]*sav
 func (a *DBUserToObject) CreateTable(ctx context.Context) error {
 	csql := []string{
 		`create sequence if not exists ` + a.SQLTablename + `_seq;`,
-		`CREATE TABLE if not exists ` + a.SQLTablename + ` (id integer primary key default nextval('` + a.SQLTablename + `_seq'),objecttype integer not null  ,objectid bigint not null  ,userid text not null  ,active boolean not null  ,read boolean not null  ,write boolean not null  ,execute boolean not null  ,view boolean not null  );`,
-		`CREATE TABLE if not exists ` + a.SQLTablename + `_archive (id integer primary key default nextval('` + a.SQLTablename + `_seq'),objecttype integer not null  ,objectid bigint not null  ,userid text not null  ,active boolean not null  ,read boolean not null  ,write boolean not null  ,execute boolean not null  ,view boolean not null  );`,
+		`CREATE TABLE if not exists ` + a.SQLTablename + ` (id integer primary key default nextval('` + a.SQLTablename + `_seq'),objecttype integer not null ,objectid bigint not null ,userid text not null ,active boolean not null ,read boolean not null ,write boolean not null ,execute boolean not null ,view boolean not null );`,
+		`CREATE TABLE if not exists ` + a.SQLTablename + `_archive (id integer primary key default nextval('` + a.SQLTablename + `_seq'),objecttype integer not null ,objectid bigint not null ,userid text not null ,active boolean not null ,read boolean not null ,write boolean not null ,execute boolean not null ,view boolean not null );`,
+		`ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS objecttype integer not null default 0;`,
+		`ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS objectid bigint not null default 0;`,
+		`ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS userid text not null default '';`,
+		`ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS active boolean not null default false;`,
+		`ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS read boolean not null default false;`,
+		`ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS write boolean not null default false;`,
+		`ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS execute boolean not null default false;`,
+		`ALTER TABLE usertoobject ADD COLUMN IF NOT EXISTS view boolean not null default false;`,
+
+		`ALTER TABLE usertoobject_archive ADD COLUMN IF NOT EXISTS objecttype integer not null default 0;`,
+		`ALTER TABLE usertoobject_archive ADD COLUMN IF NOT EXISTS objectid bigint not null default 0;`,
+		`ALTER TABLE usertoobject_archive ADD COLUMN IF NOT EXISTS userid text not null default '';`,
+		`ALTER TABLE usertoobject_archive ADD COLUMN IF NOT EXISTS active boolean not null default false;`,
+		`ALTER TABLE usertoobject_archive ADD COLUMN IF NOT EXISTS read boolean not null default false;`,
+		`ALTER TABLE usertoobject_archive ADD COLUMN IF NOT EXISTS write boolean not null default false;`,
+		`ALTER TABLE usertoobject_archive ADD COLUMN IF NOT EXISTS execute boolean not null default false;`,
+		`ALTER TABLE usertoobject_archive ADD COLUMN IF NOT EXISTS view boolean not null default false;`,
 	}
 	for i, c := range csql {
 		_, e := a.DB.ExecContext(ctx, fmt.Sprintf("create_"+a.SQLTablename+"_%d", i), c)
 		if e != nil {
 			return e
 		}
+	}
+
+	// these are optional, expected to fail
+	csql = []string{
+		// Indices:
+
+		// Foreign keys:
+
+	}
+	for i, c := range csql {
+		a.DB.ExecContextQuiet(ctx, fmt.Sprintf("create_"+a.SQLTablename+"_%d", i), c)
 	}
 	return nil
 }

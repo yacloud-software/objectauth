@@ -1,6 +1,6 @@
 // client create: ObjectAuthServiceClient
 /*
-  Created by /srv/home/cnw/devel/go/go-tools/src/golang.conradwood.net/gotools/protoc-gen-cnw/protoc-gen-cnw.go
+  Created by /home/cnw/devel/go/yatools/src/golang.yacloud.eu/yatools/protoc-gen-cnw/protoc-gen-cnw.go
 */
 
 /* geninfo:
@@ -13,7 +13,7 @@
    varname   : client_ObjectAuthServiceClient_0
    clientname: ObjectAuthServiceClient
    servername: ObjectAuthServiceServer
-   gscvname  : objectauth.ObjectAuthService
+   gsvcname  : objectauth.ObjectAuthService
    lockname  : lock_ObjectAuthServiceClient_0
    activename: active_ObjectAuthServiceClient_0
 */
@@ -62,3 +62,7 @@ func GetObjectAuthServiceClient() ObjectAuthServiceClient {
 }
 
 func ObjectAuthServiceLookupID() string { return "objectauth.ObjectAuthService" } // returns the ID suitable for lookup in the registry. treat as opaque, subject to change.
+
+func init() {
+   client.RegisterDependency("objectauth.ObjectAuthService")
+}

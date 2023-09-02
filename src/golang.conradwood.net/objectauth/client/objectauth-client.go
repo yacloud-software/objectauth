@@ -23,16 +23,23 @@ var (
 	view             = flag.Bool("view", true, "grant write access")
 	write            = flag.Bool("write", true, "grant write access")
 	read             = flag.Bool("read", true, "grant read access")
-	service          = flag.String("service", "", "request access to a service by name for me (short for -userid=[me] -objectid=service -objecttype=[service])")
+	service          = flag.String("NOT_VALID_service", "", "DEPRECATED! request access to a service by name for me (short for -userid=[me] -objectid=service -objecttype=[service])")
+	callingservice   = flag.Uint64("calling_service_id", 0, "service by id for allaccess")
+	subjectservice   = flag.Uint64("subject_service_id", 0, "service by id for allaccess")
 	userid           = flag.String("userid", "", "userid to grant access to")
 	groupid          = flag.String("groupid", "", "groupid to grant access to")
 	objectid         = flag.String("objectid", "", "object id to grant access for")
 	objecttype       = flag.String("objecttype", "", "object type to grant access")
+	allaccess        = flag.Bool("allaccess", false, "set all accessmode for -serviceid on type -objecttype")
 	check            = flag.Bool("check", false, "check access for user specified by userid (needs root)")
 )
 
 func main() {
 	flag.Parse()
+	if *allaccess {
+		utils.Bail("failed to set AllAccess()", AllAccess())
+		os.Exit(0)
+	}
 	if *repo_yacloud_dev != 0 {
 		do_repo_yacloud_dev()
 		return
@@ -222,4 +229,21 @@ func do_repo_yacloud_dev() {
 
 func getUserID() string {
 	return *userid
+}
+
+func serviceid(id uint64) string {
+	return fmt.Sprintf("%d", id)
+}
+func AllAccess() error {
+	ar := &pb.GrantAllAccessRequest{
+		ObjectType:     getObjectType(),
+		CallingService: serviceid(*callingservice),
+		SubjectService: serviceid(*subjectservice),
+	}
+	ctx := authremote.Context()
+	_, err := pb.GetObjectAuthServiceClient().GrantAllServiceAccess(ctx, ar)
+	if err != nil {
+		return err
+	}
+	return nil
 }
