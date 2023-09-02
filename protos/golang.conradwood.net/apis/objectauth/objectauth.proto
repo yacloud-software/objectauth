@@ -128,12 +128,42 @@ message ResolveRequest {
   string UserID=1;
   AuthRequest AuthRequest=2;
 }
-
+// ask for access
+message AllAccessRequest {
+  OBJECTTYPE ObjectType = 1;
+  string ServiceID=2;// userid of service to authorise
+}
+// reply to "allaccess"
+message AllAccessResponse {
+  bool Granted=1;
+}
+// grant "allaccess"
+message GrantAllAccessRequest {
+  OBJECTTYPE ObjectType = 1;
+  string CallingService=2;
+  string SubjectService=3;
+}
+// database object to save "allaccess"
+message ServiceAccess {
+  uint64 ID=1;
+  string CallingService=2;//the service who calls objectauth
+  string SubjectService=3;//the service being authorised
+  string CreatedBy=4; //userid who created it
+  uint32 Created=5;//when created
+}
 /*
 The "ObjectAuth" service encapsulates the logic of access rights to
-objects.
+objects. it also has a concept of "allaccess", which is that, it might grant a given service, called by some other service access to all objecttypes
  */
 service ObjectAuthService {
+  /*
+    check if a given service has got access to all such objects in a given service
+   for example: "Does h2gproxy have access to all users? -> no"
+   for example: "Does htmlserver (if called by h2gproxy) have access to all users? -> yes"
+  */
+  rpc AllowAllServiceAccess(AllAccessRequest)returns(AllAccessResponse);
+  // allow a service to access all objects
+  rpc GrantAllServiceAccess(GrantAllAccessRequest)returns(common.Void);
   // ask if calling user has access to an object
   rpc AskObjectAccess(AuthRequest) returns (AuthResponse);
   // get all objects (of a given type) the current user has access to
