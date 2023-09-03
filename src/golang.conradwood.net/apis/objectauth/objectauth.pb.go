@@ -751,6 +751,7 @@ func (m *ResolveRequest) GetAuthRequest() *AuthRequest {
 	return nil
 }
 
+// ask for access
 type AllAccessRequest struct {
 	ObjectType OBJECTTYPE `protobuf:"varint,1,opt,name=ObjectType,enum=objectauth.OBJECTTYPE" json:"ObjectType,omitempty"`
 	ServiceID  string     `protobuf:"bytes,2,opt,name=ServiceID" json:"ServiceID,omitempty"`
@@ -775,6 +776,7 @@ func (m *AllAccessRequest) GetServiceID() string {
 	return ""
 }
 
+// reply to "allaccess"
 type AllAccessResponse struct {
 	Granted bool `protobuf:"varint,1,opt,name=Granted" json:"Granted,omitempty"`
 }
@@ -791,6 +793,7 @@ func (m *AllAccessResponse) GetGranted() bool {
 	return false
 }
 
+// grant "allaccess"
 type GrantAllAccessRequest struct {
 	ObjectType     OBJECTTYPE `protobuf:"varint,1,opt,name=ObjectType,enum=objectauth.OBJECTTYPE" json:"ObjectType,omitempty"`
 	CallingService string     `protobuf:"bytes,2,opt,name=CallingService" json:"CallingService,omitempty"`
@@ -823,7 +826,7 @@ func (m *GrantAllAccessRequest) GetSubjectService() string {
 	return ""
 }
 
-// database object
+// database object to save "allaccess"
 type ServiceAccess struct {
 	ID             uint64 `protobuf:"varint,1,opt,name=ID" json:"ID,omitempty"`
 	CallingService string `protobuf:"bytes,2,opt,name=CallingService" json:"CallingService,omitempty"`
