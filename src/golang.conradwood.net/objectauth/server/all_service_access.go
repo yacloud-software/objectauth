@@ -12,9 +12,12 @@ import (
 )
 
 func (e *objectAuthServer) AllowAllServiceAccess(ctx context.Context, req *pb.AllAccessRequest) (*pb.AllAccessResponse, error) {
+	if req.ReadAccess == false && req.WriteAccess == false {
+		return nil, errors.InvalidArgs(ctx, "no rights specified", "no rights specified")
+	}
 	svc := auth.GetService(ctx)
 	if svc == nil {
-		return &pb.AllAccessResponse{Granted: false}, nil
+		return &pb.AllAccessResponse{ReadAccess: false, WriteAccess: false}, nil
 	}
 	ls, err := db.DefaultDBServiceAccess().ByCallingService(ctx, svc.ID)
 	if err != nil {
@@ -25,10 +28,13 @@ func (e *objectAuthServer) AllowAllServiceAccess(ctx context.Context, req *pb.Al
 			return nil, fmt.Errorf("DATABASE objectauth broken, entry with ID %d in table %s has no service", sa.ID, db.DefaultDBServiceAccess().Tablename())
 		}
 		if sa.SubjectService == req.ServiceID {
-			return &pb.AllAccessResponse{Granted: true}, nil
+			return &pb.AllAccessResponse{
+				ReadAccess:  sa.ReadAccess,
+				WriteAccess: sa.WriteAccess,
+			}, nil
 		}
 	}
-	res := &pb.AllAccessResponse{Granted: false}
+	res := &pb.AllAccessResponse{ReadAccess: false, WriteAccess: false}
 	return res, nil
 }
 func (e *objectAuthServer) GrantAllServiceAccess(ctx context.Context, req *pb.GrantAllAccessRequest) (*common.Void, error) {
