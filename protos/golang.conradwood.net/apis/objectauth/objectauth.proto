@@ -132,10 +132,13 @@ message ResolveRequest {
 message AllAccessRequest {
   OBJECTTYPE ObjectType = 1;
   string ServiceID=2;// userid of service to authorise
+  bool ReadAccess=3;
+  bool WriteAccess=4;
 }
 // reply to "allaccess"
 message AllAccessResponse {
-  bool Granted=1;
+  bool ReadAccess=1;
+  bool WriteAccess=2;
 }
 // grant "allaccess"
 message GrantAllAccessRequest {
@@ -150,6 +153,8 @@ message ServiceAccess {
   string SubjectService=3;//the service being authorised
   string CreatedBy=4; //userid who created it
   uint32 Created=5;//when created
+  bool ReadAccess=6;
+  bool WriteAccess=7;
 }
 /*
 The "ObjectAuth" service encapsulates the logic of access rights to
