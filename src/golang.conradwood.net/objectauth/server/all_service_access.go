@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"golang.conradwood.net/apis/common"
 	pb "golang.conradwood.net/apis/objectauth"
@@ -11,12 +12,17 @@ import (
 	"time"
 )
 
+var (
+	debug_service_access = flag.Bool("debug_service_access", false, "if true debug service access")
+)
+
 // ask for access
 func (e *objectAuthServer) AllowAllServiceAccess(ctx context.Context, req *pb.AllAccessRequest) (*pb.AllAccessResponse, error) {
 	svc := auth.GetService(ctx)
 	if svc == nil {
 		return &pb.AllAccessResponse{ReadAccess: false, WriteAccess: false}, nil
 	}
+	svc_debugf("access request from service %s for service %s for objecttype \"%v\" (%d)\n", svc.ID, req.ServiceID, req.ObjectType, req.ObjectType)
 	ls, err := db.DefaultDBServiceAccess().ByCallingService(ctx, svc.ID)
 	if err != nil {
 		return nil, err
@@ -35,6 +41,7 @@ func (e *objectAuthServer) AllowAllServiceAccess(ctx context.Context, req *pb.Al
 			}, nil
 		}
 	}
+	svc_debugf("access request from service %s for service %s for objecttype %v: DENIED\n", svc.ID, req.ServiceID, req.ObjectType)
 	res := &pb.AllAccessResponse{ReadAccess: false, WriteAccess: false}
 	return res, nil
 }
@@ -60,6 +67,7 @@ func (e *objectAuthServer) GrantAllServiceAccess(ctx context.Context, req *pb.Gr
 		CallingService: req.CallingService,
 		SubjectService: req.SubjectService,
 		CreatedBy:      u.ID,
+		ObjectType:     req.ObjectType,
 		ReadAccess:     req.ReadAccess,
 		WriteAccess:    req.WriteAccess,
 		Created:        uint32(time.Now().Unix()),
@@ -69,4 +77,10 @@ func (e *objectAuthServer) GrantAllServiceAccess(ctx context.Context, req *pb.Gr
 		return nil, err
 	}
 	return &common.Void{}, nil
+}
+func svc_debugf(format string, args ...interface{}) {
+	if !*debug_service_access {
+		return
+	}
+	fmt.Printf(format, args...)
 }
