@@ -122,6 +122,7 @@ func (e *objectAuthServer) AskObjectAccess(ctx context.Context, req *pb.AuthRequ
 	if u == nil {
 		u = auth.GetService(ctx)
 		if u == nil {
+			// if not called from a service nothing is allowed
 			return resp, nil
 		}
 	}
@@ -148,59 +149,19 @@ func (e *objectAuthServer) AskObjectAccess(ctx context.Context, req *pb.AuthRequ
 		Permissions: arl.EffectivePermissions,
 	}
 	res.Granted = res.Permissions.Read || res.Permissions.Write || res.Permissions.Execute || res.Permissions.View
+	if (!res.Permissions.Read || !res.Permissions.Write) && req.SubjectService != "" {
+		// see if merging in the service makes permissions more permissive
+		aar, err := e.AllowAllServiceAccess(ctx, &pb.AllAccessRequest{
+			ObjectType: req.ObjectType,
+			ServiceID:  req.SubjectService,
+		})
+		if err != nil {
+			return nil, err
+		}
+		res.Permissions.Read = res.Permissions.Read || aar.ReadAccess
+		res.Permissions.Write = res.Permissions.Write || aar.WriteAccess
+	}
 	return res, nil
-	/*
-		// we actually have to hit the database...
-		q := "select " + objects.SelectCols() + " from " + objects.Tablename() + " where objecttype = $1 and userid=$2 and objectid = $3"
-		r, err := psql.QueryContext(ctx, "getuserobjectaccess", q, req.ObjectType, u.ID, req.ObjectID)
-		if err != nil {
-			return resp, err
-		}
-		obs, err := objects.FromRows(ctx, r)
-		r.Close()
-		if err != nil {
-			return nil, err
-		}
-		p := &pb.PermissionSet{}
-		resp.Permissions = p
-		for _, db := range obs {
-			if db.Active {
-				mergePerm(p, db)
-				break
-			}
-		}
-		// do we need to check groups?
-
-		for _, g := range u.Groups {
-			ga, err := getGroupACL(ctx, g.ID, req.ObjectType, req.ObjectID)
-			if err != nil {
-				return nil, err
-			}
-			if ga != nil && ga.Active {
-				mergePerm(p, ga)
-				break
-			}
-		}
-		// now add composites...
-		al, err := composite_right(ctx, req)
-		if err != nil {
-			return nil, err
-		}
-		if *debug {
-			fmt.Printf("Composite perms result:\n")
-			shared.PrintAccessRightList(al)
-		}
-		perms := bestPermsFromList(al)
-		resp.Permissions = mergePerm(resp.Permissions, perms)
-		//fmt.Printf("Composite perms: %#v\n", perms)
-		resp.Granted = p.Read || p.Write || p.Execute || p.View
-		if !resp.Granted {
-			accessesFailed.Inc()
-			logDenied(ctx, u, req.ObjectType, req.ObjectID)
-		}
-
-		return resp, nil
-	*/
 }
 
 // get all objects available for a user
