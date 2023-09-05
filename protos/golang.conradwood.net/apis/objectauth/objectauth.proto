@@ -132,8 +132,6 @@ message ResolveRequest {
 message AllAccessRequest {
   OBJECTTYPE ObjectType = 1;
   string ServiceID=2;// userid of service to authorise
-  bool ReadAccess=3;
-  bool WriteAccess=4;
 }
 // reply to "allaccess"
 message AllAccessResponse {
@@ -145,6 +143,8 @@ message GrantAllAccessRequest {
   OBJECTTYPE ObjectType = 1;
   string CallingService=2;
   string SubjectService=3;
+  bool ReadAccess=4;
+  bool WriteAccess=5;
 }
 // database object to save "allaccess"
 message ServiceAccess {
@@ -155,6 +155,7 @@ message ServiceAccess {
   uint32 Created=5;//when created
   bool ReadAccess=6;
   bool WriteAccess=7;
+  OBJECTTYPE ObjectType=8 [(common.sql_type)="uint64"];
 }
 /*
 The "ObjectAuth" service encapsulates the logic of access rights to
