@@ -60,6 +60,8 @@ func (e *objectAuthServer) GrantAllServiceAccess(ctx context.Context, req *pb.Gr
 		CallingService: req.CallingService,
 		SubjectService: req.SubjectService,
 		CreatedBy:      u.ID,
+		ReadAccess:     req.ReadAccess,
+		WriteAccess:    req.WriteAccess,
 		Created:        uint32(time.Now().Unix()),
 	}
 	_, err = db.DefaultDBServiceAccess().Save(ctx, sa)
