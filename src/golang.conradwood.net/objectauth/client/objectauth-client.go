@@ -24,8 +24,8 @@ var (
 	write            = flag.Bool("write", true, "grant write access")
 	read             = flag.Bool("read", true, "grant read access")
 	service          = flag.String("NOT_VALID_service", "", "DEPRECATED! request access to a service by name for me (short for -userid=[me] -objectid=service -objecttype=[service])")
-	callingservice   = flag.Uint64("calling_service_id", 0, "service by id for allaccess")
-	subjectservice   = flag.Uint64("subject_service_id", 0, "service by id for allaccess")
+	callingservice   = flag.Uint64("calling_service_id", 0, "service by id for allaccess, this is the id of the service which makes the call to objectauth")
+	subjectservice   = flag.Uint64("subject_service_id", 0, "service by id for allaccess, this is the id of the service for which all access shall be granted")
 	userid           = flag.String("userid", "", "userid to grant access to")
 	groupid          = flag.String("groupid", "", "groupid to grant access to")
 	objectid         = flag.String("objectid", "", "object id to grant access for")
@@ -239,6 +239,8 @@ func AllAccess() error {
 		ObjectType:     getObjectType(),
 		CallingService: serviceid(*callingservice),
 		SubjectService: serviceid(*subjectservice),
+		ReadAccess:     *read,
+		WriteAccess:    *write,
 	}
 	ctx := authremote.Context()
 	_, err := pb.GetObjectAuthServiceClient().GrantAllServiceAccess(ctx, ar)

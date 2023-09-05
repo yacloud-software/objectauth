@@ -16,7 +16,7 @@ package db
 
 Main Table:
 
- CREATE TABLE serviceaccess (id integer primary key default nextval('serviceaccess_seq'),callingservice text not null  ,subjectservice text not null  ,createdby text not null  ,created integer not null  ,readaccess boolean not null  ,writeaccess boolean not null  );
+ CREATE TABLE serviceaccess (id integer primary key default nextval('serviceaccess_seq'),callingservice text not null  ,subjectservice text not null  ,createdby text not null  ,created integer not null  ,readaccess boolean not null  ,writeaccess boolean not null  ,objecttype bigint not null  );
 
 Alter statements:
 ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS callingservice text not null default '';
@@ -25,11 +25,12 @@ ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS createdby text not null defau
 ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS created integer not null default 0;
 ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS readaccess boolean not null default false;
 ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS writeaccess boolean not null default false;
+ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS objecttype bigint not null default 0;
 
 
 Archive Table: (structs can be moved from main to archive using Archive() function)
 
- CREATE TABLE serviceaccess_archive (id integer unique not null,callingservice text not null,subjectservice text not null,createdby text not null,created integer not null,readaccess boolean not null,writeaccess boolean not null);
+ CREATE TABLE serviceaccess_archive (id integer unique not null,callingservice text not null,subjectservice text not null,createdby text not null,created integer not null,readaccess boolean not null,writeaccess boolean not null,objecttype bigint not null);
 */
 
 import (
@@ -87,7 +88,7 @@ func (a *DBServiceAccess) Archive(ctx context.Context, id uint64) error {
 	}
 
 	// now save it to archive:
-	_, e := a.DB.ExecContext(ctx, "archive_DBServiceAccess", "insert into "+a.SQLArchivetablename+" (id,callingservice, subjectservice, createdby, created, readaccess, writeaccess) values ($1,$2, $3, $4, $5, $6, $7) ", p.ID, p.CallingService, p.SubjectService, p.CreatedBy, p.Created, p.ReadAccess, p.WriteAccess)
+	_, e := a.DB.ExecContext(ctx, "archive_DBServiceAccess", "insert into "+a.SQLArchivetablename+" (id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype) values ($1,$2, $3, $4, $5, $6, $7, $8) ", p.ID, p.CallingService, p.SubjectService, p.CreatedBy, p.Created, p.ReadAccess, p.WriteAccess, p.ObjectType)
 	if e != nil {
 		return e
 	}
@@ -100,7 +101,7 @@ func (a *DBServiceAccess) Archive(ctx context.Context, id uint64) error {
 // Save (and use database default ID generation)
 func (a *DBServiceAccess) Save(ctx context.Context, p *savepb.ServiceAccess) (uint64, error) {
 	qn := "DBServiceAccess_Save"
-	rows, e := a.DB.QueryContext(ctx, qn, "insert into "+a.SQLTablename+" (callingservice, subjectservice, createdby, created, readaccess, writeaccess) values ($1, $2, $3, $4, $5, $6) returning id", p.CallingService, p.SubjectService, p.CreatedBy, p.Created, p.ReadAccess, p.WriteAccess)
+	rows, e := a.DB.QueryContext(ctx, qn, "insert into "+a.SQLTablename+" (callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype) values ($1, $2, $3, $4, $5, $6, $7) returning id", p.CallingService, p.SubjectService, p.CreatedBy, p.Created, p.ReadAccess, p.WriteAccess, p.ObjectType)
 	if e != nil {
 		return 0, a.Error(ctx, qn, e)
 	}
@@ -120,13 +121,13 @@ func (a *DBServiceAccess) Save(ctx context.Context, p *savepb.ServiceAccess) (ui
 // Save using the ID specified
 func (a *DBServiceAccess) SaveWithID(ctx context.Context, p *savepb.ServiceAccess) error {
 	qn := "insert_DBServiceAccess"
-	_, e := a.DB.ExecContext(ctx, qn, "insert into "+a.SQLTablename+" (id,callingservice, subjectservice, createdby, created, readaccess, writeaccess) values ($1,$2, $3, $4, $5, $6, $7) ", p.ID, p.CallingService, p.SubjectService, p.CreatedBy, p.Created, p.ReadAccess, p.WriteAccess)
+	_, e := a.DB.ExecContext(ctx, qn, "insert into "+a.SQLTablename+" (id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype) values ($1,$2, $3, $4, $5, $6, $7, $8) ", p.ID, p.CallingService, p.SubjectService, p.CreatedBy, p.Created, p.ReadAccess, p.WriteAccess, p.ObjectType)
 	return a.Error(ctx, qn, e)
 }
 
 func (a *DBServiceAccess) Update(ctx context.Context, p *savepb.ServiceAccess) error {
 	qn := "DBServiceAccess_Update"
-	_, e := a.DB.ExecContext(ctx, qn, "update "+a.SQLTablename+" set callingservice=$1, subjectservice=$2, createdby=$3, created=$4, readaccess=$5, writeaccess=$6 where id = $7", p.CallingService, p.SubjectService, p.CreatedBy, p.Created, p.ReadAccess, p.WriteAccess, p.ID)
+	_, e := a.DB.ExecContext(ctx, qn, "update "+a.SQLTablename+" set callingservice=$1, subjectservice=$2, createdby=$3, created=$4, readaccess=$5, writeaccess=$6, objecttype=$7 where id = $8", p.CallingService, p.SubjectService, p.CreatedBy, p.Created, p.ReadAccess, p.WriteAccess, p.ObjectType, p.ID)
 
 	return a.Error(ctx, qn, e)
 }
@@ -141,7 +142,7 @@ func (a *DBServiceAccess) DeleteByID(ctx context.Context, p uint64) error {
 // get it by primary id
 func (a *DBServiceAccess) ByID(ctx context.Context, p uint64) (*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByID"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where id = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where id = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByID: error querying (%s)", e))
 	}
@@ -162,7 +163,7 @@ func (a *DBServiceAccess) ByID(ctx context.Context, p uint64) (*savepb.ServiceAc
 // get it by primary id (nil if no such ID row, but no error either)
 func (a *DBServiceAccess) TryByID(ctx context.Context, p uint64) (*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_TryByID"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where id = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where id = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("TryByID: error querying (%s)", e))
 	}
@@ -183,7 +184,7 @@ func (a *DBServiceAccess) TryByID(ctx context.Context, p uint64) (*savepb.Servic
 // get all rows
 func (a *DBServiceAccess) All(ctx context.Context) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_all"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" order by id")
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" order by id")
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("All: error querying (%s)", e))
 	}
@@ -202,7 +203,7 @@ func (a *DBServiceAccess) All(ctx context.Context) ([]*savepb.ServiceAccess, err
 // get all "DBServiceAccess" rows with matching CallingService
 func (a *DBServiceAccess) ByCallingService(ctx context.Context, p string) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByCallingService"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where callingservice = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where callingservice = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByCallingService: error querying (%s)", e))
 	}
@@ -217,7 +218,7 @@ func (a *DBServiceAccess) ByCallingService(ctx context.Context, p string) ([]*sa
 // the 'like' lookup
 func (a *DBServiceAccess) ByLikeCallingService(ctx context.Context, p string) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByLikeCallingService"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where callingservice ilike $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where callingservice ilike $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByCallingService: error querying (%s)", e))
 	}
@@ -232,7 +233,7 @@ func (a *DBServiceAccess) ByLikeCallingService(ctx context.Context, p string) ([
 // get all "DBServiceAccess" rows with matching SubjectService
 func (a *DBServiceAccess) BySubjectService(ctx context.Context, p string) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_BySubjectService"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where subjectservice = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where subjectservice = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("BySubjectService: error querying (%s)", e))
 	}
@@ -247,7 +248,7 @@ func (a *DBServiceAccess) BySubjectService(ctx context.Context, p string) ([]*sa
 // the 'like' lookup
 func (a *DBServiceAccess) ByLikeSubjectService(ctx context.Context, p string) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByLikeSubjectService"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where subjectservice ilike $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where subjectservice ilike $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("BySubjectService: error querying (%s)", e))
 	}
@@ -262,7 +263,7 @@ func (a *DBServiceAccess) ByLikeSubjectService(ctx context.Context, p string) ([
 // get all "DBServiceAccess" rows with matching CreatedBy
 func (a *DBServiceAccess) ByCreatedBy(ctx context.Context, p string) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByCreatedBy"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where createdby = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where createdby = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByCreatedBy: error querying (%s)", e))
 	}
@@ -277,7 +278,7 @@ func (a *DBServiceAccess) ByCreatedBy(ctx context.Context, p string) ([]*savepb.
 // the 'like' lookup
 func (a *DBServiceAccess) ByLikeCreatedBy(ctx context.Context, p string) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByLikeCreatedBy"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where createdby ilike $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where createdby ilike $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByCreatedBy: error querying (%s)", e))
 	}
@@ -292,7 +293,7 @@ func (a *DBServiceAccess) ByLikeCreatedBy(ctx context.Context, p string) ([]*sav
 // get all "DBServiceAccess" rows with matching Created
 func (a *DBServiceAccess) ByCreated(ctx context.Context, p uint32) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByCreated"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where created = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where created = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByCreated: error querying (%s)", e))
 	}
@@ -307,7 +308,7 @@ func (a *DBServiceAccess) ByCreated(ctx context.Context, p uint32) ([]*savepb.Se
 // the 'like' lookup
 func (a *DBServiceAccess) ByLikeCreated(ctx context.Context, p uint32) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByLikeCreated"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where created ilike $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where created ilike $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByCreated: error querying (%s)", e))
 	}
@@ -322,7 +323,7 @@ func (a *DBServiceAccess) ByLikeCreated(ctx context.Context, p uint32) ([]*savep
 // get all "DBServiceAccess" rows with matching ReadAccess
 func (a *DBServiceAccess) ByReadAccess(ctx context.Context, p bool) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByReadAccess"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where readaccess = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where readaccess = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByReadAccess: error querying (%s)", e))
 	}
@@ -337,7 +338,7 @@ func (a *DBServiceAccess) ByReadAccess(ctx context.Context, p bool) ([]*savepb.S
 // the 'like' lookup
 func (a *DBServiceAccess) ByLikeReadAccess(ctx context.Context, p bool) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByLikeReadAccess"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where readaccess ilike $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where readaccess ilike $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByReadAccess: error querying (%s)", e))
 	}
@@ -352,7 +353,7 @@ func (a *DBServiceAccess) ByLikeReadAccess(ctx context.Context, p bool) ([]*save
 // get all "DBServiceAccess" rows with matching WriteAccess
 func (a *DBServiceAccess) ByWriteAccess(ctx context.Context, p bool) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByWriteAccess"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where writeaccess = $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where writeaccess = $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByWriteAccess: error querying (%s)", e))
 	}
@@ -367,7 +368,7 @@ func (a *DBServiceAccess) ByWriteAccess(ctx context.Context, p bool) ([]*savepb.
 // the 'like' lookup
 func (a *DBServiceAccess) ByLikeWriteAccess(ctx context.Context, p bool) ([]*savepb.ServiceAccess, error) {
 	qn := "DBServiceAccess_ByLikeWriteAccess"
-	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess from "+a.SQLTablename+" where writeaccess ilike $1", p)
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where writeaccess ilike $1", p)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByWriteAccess: error querying (%s)", e))
 	}
@@ -375,6 +376,36 @@ func (a *DBServiceAccess) ByLikeWriteAccess(ctx context.Context, p bool) ([]*sav
 	l, e := a.FromRows(ctx, rows)
 	if e != nil {
 		return nil, a.Error(ctx, qn, fmt.Errorf("ByWriteAccess: error scanning (%s)", e))
+	}
+	return l, nil
+}
+
+// get all "DBServiceAccess" rows with matching ObjectType
+func (a *DBServiceAccess) ByObjectType(ctx context.Context, p uint64) ([]*savepb.ServiceAccess, error) {
+	qn := "DBServiceAccess_ByObjectType"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where objecttype = $1", p)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByObjectType: error querying (%s)", e))
+	}
+	defer rows.Close()
+	l, e := a.FromRows(ctx, rows)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByObjectType: error scanning (%s)", e))
+	}
+	return l, nil
+}
+
+// the 'like' lookup
+func (a *DBServiceAccess) ByLikeObjectType(ctx context.Context, p uint64) ([]*savepb.ServiceAccess, error) {
+	qn := "DBServiceAccess_ByLikeObjectType"
+	rows, e := a.DB.QueryContext(ctx, qn, "select id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype from "+a.SQLTablename+" where objecttype ilike $1", p)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByObjectType: error querying (%s)", e))
+	}
+	defer rows.Close()
+	l, e := a.FromRows(ctx, rows)
+	if e != nil {
+		return nil, a.Error(ctx, qn, fmt.Errorf("ByObjectType: error scanning (%s)", e))
 	}
 	return l, nil
 }
@@ -400,17 +431,17 @@ func (a *DBServiceAccess) Tablename() string {
 }
 
 func (a *DBServiceAccess) SelectCols() string {
-	return "id,callingservice, subjectservice, createdby, created, readaccess, writeaccess"
+	return "id,callingservice, subjectservice, createdby, created, readaccess, writeaccess, objecttype"
 }
 func (a *DBServiceAccess) SelectColsQualified() string {
-	return "" + a.SQLTablename + ".id," + a.SQLTablename + ".callingservice, " + a.SQLTablename + ".subjectservice, " + a.SQLTablename + ".createdby, " + a.SQLTablename + ".created, " + a.SQLTablename + ".readaccess, " + a.SQLTablename + ".writeaccess"
+	return "" + a.SQLTablename + ".id," + a.SQLTablename + ".callingservice, " + a.SQLTablename + ".subjectservice, " + a.SQLTablename + ".createdby, " + a.SQLTablename + ".created, " + a.SQLTablename + ".readaccess, " + a.SQLTablename + ".writeaccess, " + a.SQLTablename + ".objecttype"
 }
 
 func (a *DBServiceAccess) FromRows(ctx context.Context, rows *gosql.Rows) ([]*savepb.ServiceAccess, error) {
 	var res []*savepb.ServiceAccess
 	for rows.Next() {
 		foo := savepb.ServiceAccess{}
-		err := rows.Scan(&foo.ID, &foo.CallingService, &foo.SubjectService, &foo.CreatedBy, &foo.Created, &foo.ReadAccess, &foo.WriteAccess)
+		err := rows.Scan(&foo.ID, &foo.CallingService, &foo.SubjectService, &foo.CreatedBy, &foo.Created, &foo.ReadAccess, &foo.WriteAccess, &foo.ObjectType)
 		if err != nil {
 			return nil, a.Error(ctx, "fromrow-scan", err)
 		}
@@ -425,14 +456,15 @@ func (a *DBServiceAccess) FromRows(ctx context.Context, rows *gosql.Rows) ([]*sa
 func (a *DBServiceAccess) CreateTable(ctx context.Context) error {
 	csql := []string{
 		`create sequence if not exists ` + a.SQLTablename + `_seq;`,
-		`CREATE TABLE if not exists ` + a.SQLTablename + ` (id integer primary key default nextval('` + a.SQLTablename + `_seq'),callingservice text not null ,subjectservice text not null ,createdby text not null ,created integer not null ,readaccess boolean not null ,writeaccess boolean not null );`,
-		`CREATE TABLE if not exists ` + a.SQLTablename + `_archive (id integer primary key default nextval('` + a.SQLTablename + `_seq'),callingservice text not null ,subjectservice text not null ,createdby text not null ,created integer not null ,readaccess boolean not null ,writeaccess boolean not null );`,
+		`CREATE TABLE if not exists ` + a.SQLTablename + ` (id integer primary key default nextval('` + a.SQLTablename + `_seq'),callingservice text not null ,subjectservice text not null ,createdby text not null ,created integer not null ,readaccess boolean not null ,writeaccess boolean not null ,objecttype bigint not null );`,
+		`CREATE TABLE if not exists ` + a.SQLTablename + `_archive (id integer primary key default nextval('` + a.SQLTablename + `_seq'),callingservice text not null ,subjectservice text not null ,createdby text not null ,created integer not null ,readaccess boolean not null ,writeaccess boolean not null ,objecttype bigint not null );`,
 		`ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS callingservice text not null default '';`,
 		`ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS subjectservice text not null default '';`,
 		`ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS createdby text not null default '';`,
 		`ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS created integer not null default 0;`,
 		`ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS readaccess boolean not null default false;`,
 		`ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS writeaccess boolean not null default false;`,
+		`ALTER TABLE serviceaccess ADD COLUMN IF NOT EXISTS objecttype bigint not null default 0;`,
 
 		`ALTER TABLE serviceaccess_archive ADD COLUMN IF NOT EXISTS callingservice text not null default '';`,
 		`ALTER TABLE serviceaccess_archive ADD COLUMN IF NOT EXISTS subjectservice text not null default '';`,
@@ -440,6 +472,7 @@ func (a *DBServiceAccess) CreateTable(ctx context.Context) error {
 		`ALTER TABLE serviceaccess_archive ADD COLUMN IF NOT EXISTS created integer not null default 0;`,
 		`ALTER TABLE serviceaccess_archive ADD COLUMN IF NOT EXISTS readaccess boolean not null default false;`,
 		`ALTER TABLE serviceaccess_archive ADD COLUMN IF NOT EXISTS writeaccess boolean not null default false;`,
+		`ALTER TABLE serviceaccess_archive ADD COLUMN IF NOT EXISTS objecttype bigint not null default 0;`,
 	}
 	for i, c := range csql {
 		_, e := a.DB.ExecContext(ctx, fmt.Sprintf("create_"+a.SQLTablename+"_%d", i), c)

@@ -11,10 +11,8 @@ import (
 	"time"
 )
 
+// ask for access
 func (e *objectAuthServer) AllowAllServiceAccess(ctx context.Context, req *pb.AllAccessRequest) (*pb.AllAccessResponse, error) {
-	if req.ReadAccess == false && req.WriteAccess == false {
-		return nil, errors.InvalidArgs(ctx, "no rights specified", "no rights specified")
-	}
 	svc := auth.GetService(ctx)
 	if svc == nil {
 		return &pb.AllAccessResponse{ReadAccess: false, WriteAccess: false}, nil
@@ -27,6 +25,9 @@ func (e *objectAuthServer) AllowAllServiceAccess(ctx context.Context, req *pb.Al
 		if sa.SubjectService == "" || sa.CallingService == "" {
 			return nil, fmt.Errorf("DATABASE objectauth broken, entry with ID %d in table %s has no service", sa.ID, db.DefaultDBServiceAccess().Tablename())
 		}
+		if sa.ObjectType != req.ObjectType {
+			continue
+		}
 		if sa.SubjectService == req.ServiceID {
 			return &pb.AllAccessResponse{
 				ReadAccess:  sa.ReadAccess,
@@ -38,6 +39,9 @@ func (e *objectAuthServer) AllowAllServiceAccess(ctx context.Context, req *pb.Al
 	return res, nil
 }
 func (e *objectAuthServer) GrantAllServiceAccess(ctx context.Context, req *pb.GrantAllAccessRequest) (*common.Void, error) {
+	if req.ReadAccess == false && req.WriteAccess == false {
+		return nil, errors.InvalidArgs(ctx, "no rights specified", "no rights specified")
+	}
 	err := errors.NeedsRoot(ctx)
 	if err != nil {
 		return nil, err
@@ -46,10 +50,10 @@ func (e *objectAuthServer) GrantAllServiceAccess(ctx context.Context, req *pb.Gr
 	if u == nil {
 		return nil, errors.Unauthenticated(ctx, "login please")
 	}
-	if req.CallingService == "" {
+	if req.CallingService == "" || req.CallingService == "0" {
 		return nil, errors.InvalidArgs(ctx, "missing calling service id", "missing calling service id")
 	}
-	if req.SubjectService == "" {
+	if req.SubjectService == "" || req.SubjectService == "0" {
 		return nil, errors.InvalidArgs(ctx, "missing calling subject id", "missing calling subject id")
 	}
 	sa := &pb.ServiceAccess{
