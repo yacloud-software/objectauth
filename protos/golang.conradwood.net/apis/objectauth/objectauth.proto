@@ -67,6 +67,7 @@ message GroupToObject {
 message AuthRequest {
   OBJECTTYPE ObjectType = 1; // the type of object we're authenticating. It should probably be an enum, but it's not clear yet
   uint64 ObjectID = 2;       // yes, it's numeric!!! If the object does not have a numeric ID, it's broken and should be fixed.
+  string SubjectService=3;//the service being authorised (optional)
 }
 
 message AuthResponse {
@@ -157,6 +158,7 @@ message ServiceAccess {
   bool WriteAccess=7;
   OBJECTTYPE ObjectType=8 [(common.sql_type)="uint64"];
 }
+
 /*
 The "ObjectAuth" service encapsulates the logic of access rights to
 objects. it also has a concept of "allaccess", which is that, it might grant a given service, called by some other service access to all objecttypes
@@ -170,7 +172,7 @@ service ObjectAuthService {
   rpc AllowAllServiceAccess(AllAccessRequest)returns(AllAccessResponse);
   // allow a service to access all objects
   rpc GrantAllServiceAccess(GrantAllAccessRequest)returns(common.Void);
-  // ask if calling user has access to an object
+  // ask if calling user or a given service has access to an object. accessrights of service and user merged to form the most permissive set of accessrights
   rpc AskObjectAccess(AuthRequest) returns (AuthResponse);
   // get all objects (of a given type) the current user has access to
   rpc AvailableObjects(ObjectType) returns (ObjectIDList);
