@@ -65,4 +65,5 @@ func ObjectAuthServiceLookupID() string { return "objectauth.ObjectAuthService" 
 
 func init() {
    client.RegisterDependency("objectauth.ObjectAuthService")
+   AddService("objectauth.ObjectAuthService")
 }

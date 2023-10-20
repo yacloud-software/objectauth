@@ -972,7 +972,7 @@ type ObjectAuthServiceClient interface {
 	AllowAllServiceAccess(ctx context.Context, in *AllAccessRequest, opts ...grpc.CallOption) (*AllAccessResponse, error)
 	// allow a service to access all objects
 	GrantAllServiceAccess(ctx context.Context, in *GrantAllAccessRequest, opts ...grpc.CallOption) (*common.Void, error)
-	// ask if calling user or calling service has access to an object
+	// ask if calling user or a given service has access to an object. accessrights of service and user merged to form the most permissive set of accessrights
 	AskObjectAccess(ctx context.Context, in *AuthRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	// get all objects (of a given type) the current user has access to
 	AvailableObjects(ctx context.Context, in *ObjectType, opts ...grpc.CallOption) (*ObjectIDList, error)
@@ -1098,7 +1098,7 @@ type ObjectAuthServiceServer interface {
 	AllowAllServiceAccess(context.Context, *AllAccessRequest) (*AllAccessResponse, error)
 	// allow a service to access all objects
 	GrantAllServiceAccess(context.Context, *GrantAllAccessRequest) (*common.Void, error)
-	// ask if calling user or calling service has access to an object
+	// ask if calling user or a given service has access to an object. accessrights of service and user merged to form the most permissive set of accessrights
 	AskObjectAccess(context.Context, *AuthRequest) (*AuthResponse, error)
 	// get all objects (of a given type) the current user has access to
 	AvailableObjects(context.Context, *ObjectType) (*ObjectIDList, error)
