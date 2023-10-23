@@ -58,7 +58,7 @@ func main() {
 	gobjects = db.NewDBGroupToObject(psql)
 	compgroups = db.DefaultDBGroupToComposite() // newer, better way of doing it
 	sd := server.NewServerDef()
-	sd.Port = *port
+	sd.SetPort(*port)
 	//	migratedb()
 	sd.Register = server.Register(
 		func(server *grpc.Server) error {
