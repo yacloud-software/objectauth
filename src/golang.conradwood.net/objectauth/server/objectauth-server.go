@@ -116,6 +116,13 @@ func (e *objectAuthServer) ResolveForUser(ctx context.Context, req *pb.ResolveRe
 
 // ask if a user has access to a specific object
 func (e *objectAuthServer) AskObjectAccess(ctx context.Context, req *pb.AuthRequest) (*pb.AuthResponse, error) {
+	resp, err := e.AskObjectAccessErr(ctx, req)
+	if err != nil {
+		logAccessDenied(ctx, "access to object %v.%d denied for user %s", req.ObjectType, req.ObjectID, auth.CurrentUserString(ctx))
+	}
+	return resp, err
+}
+func (e *objectAuthServer) AskObjectAccessErr(ctx context.Context, req *pb.AuthRequest) (*pb.AuthResponse, error) {
 	accesses.Inc()
 	resp := &pb.AuthResponse{Granted: false}
 	u := auth.GetUser(ctx)
