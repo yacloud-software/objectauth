@@ -14,5 +14,5 @@ func logAccessDenied(ctx context.Context, format string, args ...interface{}) {
 	if svc != nil {
 		svcs = fmt.Sprintf("service %s/%s", svc.ID, svc.Email)
 	}
-	fmt.Printf("[%s / %s] %s\n", u, svcs, msg)
+	fmt.Printf("[%s @ %s] %s\n", u, svcs, msg)
 }

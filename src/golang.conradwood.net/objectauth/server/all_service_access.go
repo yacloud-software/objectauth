@@ -7,6 +7,7 @@ import (
 	"golang.conradwood.net/apis/common"
 	pb "golang.conradwood.net/apis/objectauth"
 	"golang.conradwood.net/go-easyops/auth"
+	"golang.conradwood.net/go-easyops/authremote"
 	"golang.conradwood.net/go-easyops/errors"
 	"golang.conradwood.net/objectauth/db"
 	"time"
@@ -20,8 +21,12 @@ var (
 func (e *objectAuthServer) AllowAllServiceAccess(ctx context.Context, req *pb.AllAccessRequest) (*pb.AllAccessResponse, error) {
 	resp, err := e.AllowAllServiceAccessErr(ctx, req)
 	if err != nil || (resp.ReadAccess == false && resp.WriteAccess == false) {
-		svc := auth.GetService(ctx)
-		logAccessDenied(ctx, "all access denied  from service %s for service %s for objecttype \"%v\" (%d)", svc.ID, req.ServiceID, req.ObjectType, req.ObjectType)
+		svc, _ := authremote.GetUserByID(ctx, req.ServiceID)
+		svcs := fmt.Sprintf("%s", req.ServiceID)
+		if svc != nil {
+			svcs = auth.UserIDString(svc)
+		}
+		logAccessDenied(ctx, "all access denied for service %s for objecttype \"%v\" (%d)", svcs, req.ObjectType, req.ObjectType)
 	}
 	return resp, err
 }
