@@ -18,6 +18,14 @@ var (
 
 // ask for access
 func (e *objectAuthServer) AllowAllServiceAccess(ctx context.Context, req *pb.AllAccessRequest) (*pb.AllAccessResponse, error) {
+	resp, err := e.AllowAllServiceAccessErr(ctx, req)
+	if err != nil || (resp.ReadAccess == false && resp.WriteAccess == false) {
+		svc := auth.GetService(ctx)
+		logAccessDenied(ctx, "all access denied  from service %s for service %s for objecttype \"%v\" (%d)", svc.ID, req.ServiceID, req.ObjectType, req.ObjectType)
+	}
+	return resp, err
+}
+func (e *objectAuthServer) AllowAllServiceAccessErr(ctx context.Context, req *pb.AllAccessRequest) (*pb.AllAccessResponse, error) {
 	svc := auth.GetService(ctx)
 	if svc == nil {
 		return &pb.AllAccessResponse{ReadAccess: false, WriteAccess: false}, nil
