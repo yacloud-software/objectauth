@@ -87,3 +87,4 @@ func ResolveToNumber(t pb.OBJECTTYPE, s string) (uint64, string, error) {
 	return 0, "", fmt.Errorf("Unsure how to convert \"%v\" into a number\n", t)
 
 }
+

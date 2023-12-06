@@ -54,3 +54,4 @@ func GrantService(ctx context.Context, servicename string, groupid string) error
 	fmt.Printf("Granted access to service (groupid=%s) \"%s\"\n", groupid, sn.Target.ServiceName)
 	return nil
 }
+

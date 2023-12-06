@@ -67,3 +67,4 @@ func init() {
    client.RegisterDependency("objectauth.ObjectAuthService")
    AddService("objectauth.ObjectAuthService")
 }
+

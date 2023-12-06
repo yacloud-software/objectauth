@@ -30,3 +30,4 @@ func Debugf(format string, args ...interface{}) {
 	}
 	fmt.Printf("[composite] "+format, args...)
 }
+

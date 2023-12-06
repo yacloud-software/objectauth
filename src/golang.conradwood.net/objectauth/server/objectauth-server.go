@@ -60,13 +60,13 @@ func main() {
 	sd := server.NewServerDef()
 	sd.SetPort(*port)
 	//	migratedb()
-	sd.Register = server.Register(
+	sd.SetRegister(server.Register(
 		func(server *grpc.Server) error {
 			e := new(objectAuthServer)
 			pb.RegisterObjectAuthServiceServer(server, e)
 			return nil
 		},
-	)
+	))
 	err = server.ServerStartup(sd)
 	utils.Bail("Unable to start server", err)
 	os.Exit(0)
@@ -538,3 +538,4 @@ func extraService(ctx context.Context, t pb.OBJECTTYPE) bool {
 	fmt.Printf("not an extra service: \"%s\" for %v\n", svc.ID, t)
 	return false
 }
+

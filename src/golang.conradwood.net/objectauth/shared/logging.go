@@ -51,3 +51,4 @@ func PrintRequestResponse(rr *pb.ResolveResponse) {
 	fmt.Println(t.ToPrettyString())
 
 }
+

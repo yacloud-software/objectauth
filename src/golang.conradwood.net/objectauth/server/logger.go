@@ -26,3 +26,4 @@ func log_grant(ctx context.Context, uto *pb.UserToObject) {
 	}
 	fmt.Printf("%s rights on object %s (id %d) to user %s\n", s, pb.OBJECTTYPE_name[int32(object_type)], object_id, userid)
 }
+

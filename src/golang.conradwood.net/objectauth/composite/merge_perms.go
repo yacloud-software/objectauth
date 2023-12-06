@@ -22,3 +22,4 @@ func mergePerm(p *pb.PermissionSet, ep embeddedPermissions) *pb.PermissionSet {
 	res.View = res.View || ep.GetView()
 	return res
 }
+
