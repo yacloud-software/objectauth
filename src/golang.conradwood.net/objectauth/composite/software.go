@@ -32,3 +32,4 @@ func (s *Software) ForSingleObject(ctx context.Context, req *pb.AuthRequest) (*p
 	return accessrightlist_for(ctx, pb.COMPOSITETYPE_Software, lookupid)
 }
 
+

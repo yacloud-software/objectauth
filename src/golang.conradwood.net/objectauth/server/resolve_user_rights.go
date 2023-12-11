@@ -69,3 +69,4 @@ func resolve_user_rights(ctx context.Context, req *pb.AuthRequest) (*pb.AccessRi
 	return res, nil
 }
 
+
