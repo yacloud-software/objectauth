@@ -46,3 +46,4 @@ func accessrightlist_for(ctx context.Context, t pb.COMPOSITETYPE, id uint64) (*p
 
 
 
+

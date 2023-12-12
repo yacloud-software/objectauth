@@ -80,3 +80,4 @@ func composite_right(ctx context.Context, req *pb.AuthRequest) (*pb.AccessRightL
 
 
 
+
