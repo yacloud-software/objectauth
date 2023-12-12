@@ -33,3 +33,4 @@ func (s *Software) ForSingleObject(ctx context.Context, req *pb.AuthRequest) (*p
 }
 
 
+
