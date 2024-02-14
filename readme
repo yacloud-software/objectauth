@@ -4,4 +4,16 @@ objecttype, objectid, user
 *how* it does it is (and must remain) entirely opaque to the service(s)
 
 
+==== all-access ====
+some services require access to all objects in a different service.
+obviously, this should be used _real_ carefully.
 
+to enable that, objectauto supports "allaccess" method:
+
+Example:
+objectauth-client -allaccess -subject_service_id 998 -calling_service_id 158 -objecttype gitrepository
+
+in this example "998" is the artefactserver and "158" the gitserver.
+This would allow the artefact server "allaccess" to objecttype "gitrepository" when calling "gitserver".
+
+in other words: if gitserver asks objectauth wether or not artefact server has access to a repository, the objectauth server will always say "yes".
