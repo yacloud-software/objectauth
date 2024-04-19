@@ -9,7 +9,7 @@ require (
 	golang.conradwood.net/apis/objectauth v1.1.1702
 	golang.conradwood.net/apis/registry v1.1.2878
 	golang.conradwood.net/apis/rpcaclapi v1.1.2643
-	golang.conradwood.net/go-easyops v0.1.27320
+	golang.conradwood.net/go-easyops v0.1.27487
 	google.golang.org/grpc v1.63.2
 )
 
