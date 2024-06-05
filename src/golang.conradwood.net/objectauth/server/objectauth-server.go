@@ -538,8 +538,3 @@ func extraService(ctx context.Context, t pb.OBJECTTYPE) bool {
 	fmt.Printf("not an extra service: \"%s\" for %v\n", svc.ID, t)
 	return false
 }
-
-
-
-
-

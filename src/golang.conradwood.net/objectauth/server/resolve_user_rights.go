@@ -6,17 +6,11 @@ import (
 	//	au "golang.conradwood.net/apis/auth"
 	pb "golang.conradwood.net/apis/objectauth"
 	"golang.conradwood.net/go-easyops/auth"
-	"golang.conradwood.net/go-easyops/errors"
+	//	"golang.conradwood.net/go-easyops/errors"
 	"golang.conradwood.net/objectauth/shared"
 )
 
 func resolve_user_rights(ctx context.Context, req *pb.AuthRequest) (*pb.AccessRightList, error) {
-	user := auth.GetUser(ctx)
-	if user == nil {
-		return nil, errors.Unauthenticated(ctx, "resolve_user_rights")
-	}
-	userid := user.ID
-	groups := user.Groups
 	res := &pb.AccessRightList{
 		ObjectType:           req.ObjectType,
 		ObjectID:             req.ObjectID,
@@ -24,6 +18,13 @@ func resolve_user_rights(ctx context.Context, req *pb.AuthRequest) (*pb.AccessRi
 		GroupPermissions:     make(map[string]*pb.PermissionSet),
 		EffectivePermissions: &pb.PermissionSet{},
 	}
+	user := auth.GetUser(ctx)
+	if user == nil {
+		return res, nil
+	}
+	userid := user.ID
+	groups := user.Groups
+
 	q := "select " + objects.SelectCols() + " from " + objects.Tablename() + " where objecttype = $1 and userid=$2 and objectid = $3"
 	r, err := psql.QueryContext(ctx, "getuserobjectaccess", q, req.ObjectType, userid, req.ObjectID)
 	if err != nil {
@@ -68,8 +69,3 @@ func resolve_user_rights(ctx context.Context, req *pb.AuthRequest) (*pb.AccessRi
 
 	return res, nil
 }
-
-
-
-
-
