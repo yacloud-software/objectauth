@@ -2,6 +2,8 @@ module golang.conradwood.net/objectauth
 
 go 1.21.1
 
+toolchain go1.22.2
+
 require (
 	golang.conradwood.net/apis/artefact v1.1.2643
 	golang.conradwood.net/apis/auth v1.1.3112
@@ -9,7 +11,7 @@ require (
 	golang.conradwood.net/apis/objectauth v1.1.1702
 	golang.conradwood.net/apis/registry v1.1.3071
 	golang.conradwood.net/apis/rpcaclapi v1.1.2643
-	golang.conradwood.net/go-easyops v0.1.29912
+	golang.conradwood.net/go-easyops v0.1.30265
 	google.golang.org/grpc v1.66.0
 )
 
