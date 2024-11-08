@@ -4,17 +4,19 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"time"
+
 	"golang.conradwood.net/apis/common"
 	pb "golang.conradwood.net/apis/objectauth"
 	"golang.conradwood.net/go-easyops/auth"
 	"golang.conradwood.net/go-easyops/authremote"
 	"golang.conradwood.net/go-easyops/errors"
 	"golang.conradwood.net/objectauth/db"
-	"time"
 )
 
 var (
-	debug_service_access = flag.Bool("debug_service_access", false, "if true debug service access")
+	disallow_all_service_access_for_users = flag.Bool("disallow_all_service_access_for_users", true, "if true, only services get to access all objects. if a context has both, user and service, it will be disallowed")
+	debug_service_access                  = flag.Bool("debug_service_access", false, "if true debug service access")
 )
 
 // ask for access
@@ -36,6 +38,15 @@ func (e *objectAuthServer) AllowAllServiceAccessErr(ctx context.Context, req *pb
 		return &pb.AllAccessResponse{ReadAccess: false, WriteAccess: false}, nil
 	}
 	svc_debugf("access request from service %s for service %s for objecttype \"%v\" (%d)\n", svc.ID, req.ServiceID, req.ObjectType, req.ObjectType)
+
+	if *disallow_all_service_access_for_users {
+		u := auth.GetUser(ctx)
+		if u != nil {
+			svc_debugf("access request from service %s for service %s for objecttype \"%v\" (%d) denied because also running as user %s\n", svc.ID, req.ServiceID, req.ObjectType, req.ObjectType, auth.UserIDString(u))
+			return nil, errors.AccessDenied(ctx, "access denied")
+		}
+	}
+
 	ls, err := db.DefaultDBServiceAccess().ByCallingService(ctx, svc.ID)
 	if err != nil {
 		return nil, err
@@ -97,8 +108,3 @@ func svc_debugf(format string, args ...interface{}) {
 	}
 	fmt.Printf(format, args...)
 }
-
-
-
-
-
