@@ -21,7 +21,7 @@ var (
 
 // ask for access
 func (e *objectAuthServer) AllowAllServiceAccess(ctx context.Context, req *pb.AllAccessRequest) (*pb.AllAccessResponse, error) {
-	resp, err := e.AllowAllServiceAccessErr(ctx, req)
+	resp, err := e.allowAllServiceAccessErr(ctx, req)
 	if err != nil || (resp.ReadAccess == false && resp.WriteAccess == false) {
 		svc, _ := authremote.GetUserByID(ctx, req.ServiceID)
 		svcs := fmt.Sprintf("%s", req.ServiceID)
@@ -32,7 +32,7 @@ func (e *objectAuthServer) AllowAllServiceAccess(ctx context.Context, req *pb.Al
 	}
 	return resp, err
 }
-func (e *objectAuthServer) AllowAllServiceAccessErr(ctx context.Context, req *pb.AllAccessRequest) (*pb.AllAccessResponse, error) {
+func (e *objectAuthServer) allowAllServiceAccessErr(ctx context.Context, req *pb.AllAccessRequest) (*pb.AllAccessResponse, error) {
 	svc := auth.GetService(ctx)
 	if svc == nil {
 		return &pb.AllAccessResponse{ReadAccess: false, WriteAccess: false}, nil
@@ -43,7 +43,7 @@ func (e *objectAuthServer) AllowAllServiceAccessErr(ctx context.Context, req *pb
 		u := auth.GetUser(ctx)
 		if u != nil {
 			svc_debugf("access request from service %s for service %s for objecttype \"%v\" (%d) denied because also running as user %s\n", svc.ID, req.ServiceID, req.ObjectType, req.ObjectType, auth.UserIDString(u))
-			return nil, errors.AccessDenied(ctx, "access denied")
+			return &pb.AllAccessResponse{ReadAccess: false, WriteAccess: false}, nil
 		}
 	}
 
