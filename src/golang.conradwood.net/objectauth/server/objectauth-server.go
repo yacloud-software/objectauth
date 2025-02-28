@@ -26,6 +26,7 @@ import (
 )
 
 var (
+	use_cache       = flag.Bool("use_cache", false, "cache results")
 	objaccess_cache = cache.New("objectaccess_cache", time.Duration(5)*time.Minute, 10000)
 	debug           = flag.Bool("debug", false, "debug mode")
 	port            = flag.Int("port", 4100, "The grpc server port")
@@ -148,9 +149,11 @@ func (e *objectAuthServer) AskObjectAccessErr(ctx context.Context, req *pb.AuthR
 	}
 
 	key := fmt.Sprintf("%s_%s_%d_%d", uid_s, svc_s, req.ObjectType, req.ObjectID)
-	o := objaccess_cache.Get(key)
-	if o != nil {
-		return o.(*pb.AuthResponse), nil
+	if *use_cache {
+		o := objaccess_cache.Get(key)
+		if o != nil {
+			return o.(*pb.AuthResponse), nil
+		}
 	}
 	fmt.Printf("Key: %s\n", key)
 	// TODO: HACK FOR USERAPPREPORIGHTS FLAGS
