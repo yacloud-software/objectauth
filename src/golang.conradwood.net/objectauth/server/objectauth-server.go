@@ -141,6 +141,7 @@ func (e *objectAuthServer) AskObjectAccessErr(ctx context.Context, req *pb.AuthR
 			// if not called from a service nothing is allowed
 			return resp, nil
 		}
+		u = svc
 	} else {
 		uid_s = u.ID
 	}
