@@ -87,6 +87,7 @@ func (e *objectAuthServer) GrantAllServiceAccess(ctx context.Context, req *pb.Gr
 	if req.SubjectService == "" || req.SubjectService == "0" {
 		return nil, errors.InvalidArgs(ctx, "missing calling subject id", "missing calling subject id")
 	}
+	clearCache()
 	sa := &pb.ServiceAccess{
 		CallingService: req.CallingService,
 		SubjectService: req.SubjectService,

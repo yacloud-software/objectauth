@@ -3,7 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
+
 	"golang.conradwood.net/go-easyops/auth"
+)
+
+var (
+	dedup_log      = make(map[string]time.Time)
+	dedup_log_lock sync.Mutex
 )
 
 func logAccessDenied(ctx context.Context, format string, args ...interface{}) {
@@ -14,10 +22,22 @@ func logAccessDenied(ctx context.Context, format string, args ...interface{}) {
 	if svc != nil {
 		svcs = fmt.Sprintf("service %s/%s", svc.ID, svc.Email)
 	}
-	fmt.Printf("[%s @ %s] %s\n", u, svcs, msg)
+	txt := fmt.Sprintf("[%s @ %s] %s", u, svcs, msg)
+	print := false
+	dedup_log_lock.Lock()
+	last_time, found := dedup_log[txt]
+	if found {
+		if time.Since(last_time) > time.Duration(60)*time.Second {
+			print = true
+		}
+	} else {
+		print = true
+	}
+	if print {
+		dedup_log[txt] = time.Now()
+	}
+	dedup_log_lock.Unlock()
+	if print {
+		fmt.Println(txt)
+	}
 }
-
-
-
-
-

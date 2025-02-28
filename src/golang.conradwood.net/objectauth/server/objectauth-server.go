@@ -26,8 +26,8 @@ import (
 )
 
 var (
-	use_cache       = flag.Bool("use_cache", false, "cache results")
-	objaccess_cache = cache.New("objectaccess_cache", time.Duration(5)*time.Minute, 10000)
+	use_cache       = flag.Bool("use_cache", true, "cache results")
+	objaccess_cache = cache.New("objectaccess_cache", time.Duration(5)*time.Hour, 10000)
 	debug           = flag.Bool("debug", false, "debug mode")
 	port            = flag.Int("port", 4100, "The grpc server port")
 	allow_all       = flag.Bool("allow_all", false, "allow all requests")
@@ -259,6 +259,7 @@ func (e *objectAuthServer) GrantToMe(ctx context.Context, req *pb.GrantUserReque
 	if u == nil {
 		return nil, errors.Unauthenticated(ctx, "access denied")
 	}
+	clearCache()
 	req.UserID = u.ID
 	return e.GrantToUser(ctx, req)
 }
@@ -272,6 +273,7 @@ func (e *objectAuthServer) GrantToGroup(ctx context.Context, req *pb.GrantGroupR
 	if req.ObjectID == 0 {
 		return nil, errors.InvalidArgs(ctx, "objectid of 0 is not valid", "objectid of 0 is not valid")
 	}
+	clearCache()
 
 	g, err := authremote.GetAuthManagerClient().GetGroupByID(ctx, &apb.GetGroupRequest{ID: req.GroupID})
 	if err != nil {
@@ -322,6 +324,7 @@ func (e *objectAuthServer) GrantToUser(ctx context.Context, req *pb.GrantUserReq
 	if req.ObjectType == 0 {
 		return nil, errors.InvalidArgs(ctx, "objecttype of 0 is not valid", "objecttype of 0 is not valid")
 	}
+	clearCache()
 	uto, err := getUserACL(ctx, req.UserID, req.ObjectType, req.ObjectID)
 	if err != nil {
 		return nil, err
@@ -564,4 +567,9 @@ func extraService(ctx context.Context, t pb.OBJECTTYPE) bool {
 	}
 	fmt.Printf("not an extra service: \"%s\" for %v\n", svc.ID, t)
 	return false
+}
+func clearCache() {
+	//		objaccess_cache = cache.New("objectaccess_cache", time.Duration(5)*time.Hour, 10000)
+	objaccess_cache.Clear()
+	fmt.Printf("Caches cleared\n")
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+
 	"golang.conradwood.net/apis/common"
 	pb "golang.conradwood.net/apis/objectauth"
 	"golang.conradwood.net/go-easyops/auth"
@@ -24,6 +25,7 @@ func (e *objectAuthServer) GrantToSoftware(ctx context.Context, req *pb.IDGrantR
 	if !auth.IsInGroupByUser(u, req.GroupID) {
 		return nil, errors.AccessDenied(ctx, "user \"%s\" must be in group \"%s\"", u.ID, req.GroupID)
 	}
+	clearCache()
 	// check if user has exe permissions
 	ar, err := e.AskObjectAccess(ctx, &pb.AuthRequest{ObjectType: pb.OBJECTTYPE_GitRepository, ObjectID: req.ID})
 	if err != nil {
@@ -77,8 +79,3 @@ func composite_right(ctx context.Context, req *pb.AuthRequest) (*pb.AccessRightL
 	}
 	return c.ForSingleObject(ctx, req)
 }
-
-
-
-
-
