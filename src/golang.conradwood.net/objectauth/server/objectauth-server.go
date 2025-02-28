@@ -4,30 +4,36 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"time"
+
 	apb "golang.conradwood.net/apis/auth"
 	"golang.conradwood.net/apis/common"
 	pb "golang.conradwood.net/apis/objectauth"
 	"golang.conradwood.net/go-easyops/auth"
 	"golang.conradwood.net/go-easyops/authremote"
+	"golang.conradwood.net/go-easyops/cache"
 	"golang.conradwood.net/go-easyops/errors"
 	"golang.conradwood.net/go-easyops/prometheus"
 	"golang.conradwood.net/go-easyops/server"
 	"golang.conradwood.net/go-easyops/sql"
 	"golang.conradwood.net/go-easyops/utils"
 	"golang.conradwood.net/objectauth/db"
+
 	//	"golang.conradwood.net/objectauth/shared"
-	"google.golang.org/grpc"
 	"os"
+
+	"google.golang.org/grpc"
 )
 
 var (
-	debug     = flag.Bool("debug", false, "debug mode")
-	port      = flag.Int("port", 4100, "The grpc server port")
-	allow_all = flag.Bool("allow_all", false, "allow all requests")
-	objects   *db.DBUserToObject
-	gobjects  *db.DBGroupToObject
-	psql      *sql.DB
-	accesses  = prometheus.NewCounter(
+	objaccess_cache = cache.New("objectaccess_cache", time.Duration(5)*time.Minute, 10000)
+	debug           = flag.Bool("debug", false, "debug mode")
+	port            = flag.Int("port", 4100, "The grpc server port")
+	allow_all       = flag.Bool("allow_all", false, "allow all requests")
+	objects         *db.DBUserToObject
+	gobjects        *db.DBGroupToObject
+	psql            *sql.DB
+	accesses        = prometheus.NewCounter(
 		prometheus.CounterOpts{
 			Name: "objectauth_total_requests",
 			Help: "V=1 UNIT=ops DESC=incremented each time a request is received",
@@ -125,20 +131,36 @@ func (e *objectAuthServer) AskObjectAccess(ctx context.Context, req *pb.AuthRequ
 func (e *objectAuthServer) AskObjectAccessErr(ctx context.Context, req *pb.AuthRequest) (*pb.AuthResponse, error) {
 	accesses.Inc()
 	resp := &pb.AuthResponse{Granted: false}
+	uid_s := ""
+	svc_s := ""
 	u := auth.GetUser(ctx)
+	svc := auth.GetService(ctx)
 	if u == nil {
-		u = auth.GetService(ctx)
-		if u == nil {
+		if svc == nil {
 			// if not called from a service nothing is allowed
 			return resp, nil
 		}
+	} else {
+		uid_s = u.ID
 	}
+	if svc != nil {
+		svc_s = svc.ID
+	}
+
+	key := fmt.Sprintf("%s_%s_%d_%d", uid_s, svc_s, req.ObjectType, req.ObjectID)
+	o := objaccess_cache.Get(key)
+	if o != nil {
+		return o.(*pb.AuthResponse), nil
+	}
+	fmt.Printf("Key: %s\n", key)
 	// TODO: HACK FOR USERAPPREPORIGHTS FLAGS
 	if req.ObjectType == pb.OBJECTTYPE_UserAppFlags {
 		req.ObjectType = pb.OBJECTTYPE_GitRepository
 	}
 	if HasAllAccess(u.ID, req.ObjectType) {
-		return &pb.AuthResponse{Granted: true, Permissions: &pb.PermissionSet{Read: true, Write: true, Execute: true, View: true}}, nil
+		ar := &pb.AuthResponse{Granted: true, Permissions: &pb.PermissionSet{Read: true, Write: true, Execute: true, View: true}}
+		objaccess_cache.Put(key, ar)
+		return ar, nil
 	}
 	if *debug {
 		fmt.Printf("Access request for user #%s(%s) for objecttype=%v, objectid=%d\n", u.ID, auth.Description(u), req.ObjectType, req.ObjectID)
@@ -168,6 +190,7 @@ func (e *objectAuthServer) AskObjectAccessErr(ctx context.Context, req *pb.AuthR
 		res.Permissions.Read = res.Permissions.Read || aar.ReadAccess
 		res.Permissions.Write = res.Permissions.Write || aar.WriteAccess
 	}
+	objaccess_cache.Put(key, res)
 	return res, nil
 }
 
