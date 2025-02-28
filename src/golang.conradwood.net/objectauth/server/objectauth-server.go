@@ -156,7 +156,7 @@ func (e *objectAuthServer) AskObjectAccessErr(ctx context.Context, req *pb.AuthR
 			return o.(*pb.AuthResponse), nil
 		}
 	}
-	fmt.Printf("Key: %s\n", key)
+	//fmt.Printf("Key: %s\n", key)
 	// TODO: HACK FOR USERAPPREPORIGHTS FLAGS
 	if req.ObjectType == pb.OBJECTTYPE_UserAppFlags {
 		req.ObjectType = pb.OBJECTTYPE_GitRepository
