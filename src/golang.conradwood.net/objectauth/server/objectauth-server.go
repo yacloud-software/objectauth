@@ -57,6 +57,7 @@ type objectAuthServer struct {
 
 func main() {
 	flag.Parse()
+   server.SetHealth(common.Health_STARTING)
 	fmt.Printf("Starting ObjectAuthServiceServer...\n")
 	xpsql, err := sql.Open()
 	utils.Bail("failed to open sql database", err)
@@ -66,6 +67,7 @@ func main() {
 	compgroups = db.DefaultDBGroupToComposite() // newer, better way of doing it
 	sd := server.NewServerDef()
 	sd.SetPort(*port)
+sd.SetOnStartupCallback(startup)
 	//	migratedb()
 	sd.SetRegister(server.Register(
 		func(server *grpc.Server) error {
@@ -77,6 +79,9 @@ func main() {
 	err = server.ServerStartup(sd)
 	utils.Bail("Unable to start server", err)
 	os.Exit(0)
+}
+func startup() {
+	server.SetHealth(common.Health_READY)
 }
 func migratedb() {
 	ctx := authremote.Context()
@@ -573,3 +578,6 @@ func clearCache() {
 	objaccess_cache.Clear()
 	fmt.Printf("Caches cleared\n")
 }
+
+
+
