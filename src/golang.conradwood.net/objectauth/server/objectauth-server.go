@@ -57,7 +57,7 @@ type objectAuthServer struct {
 
 func main() {
 	flag.Parse()
-   server.SetHealth(common.Health_STARTING)
+	server.SetHealth(common.Health_STARTING)
 	fmt.Printf("Starting ObjectAuthServiceServer...\n")
 	xpsql, err := sql.Open()
 	utils.Bail("failed to open sql database", err)
@@ -67,7 +67,7 @@ func main() {
 	compgroups = db.DefaultDBGroupToComposite() // newer, better way of doing it
 	sd := server.NewServerDef()
 	sd.SetPort(*port)
-sd.SetOnStartupCallback(startup)
+	sd.SetOnStartupCallback(startup)
 	//	migratedb()
 	sd.SetRegister(server.Register(
 		func(server *grpc.Server) error {
@@ -270,7 +270,7 @@ func (e *objectAuthServer) GrantToMe(ctx context.Context, req *pb.GrantUserReque
 }
 func (e *objectAuthServer) GrantToGroup(ctx context.Context, req *pb.GrantGroupRequest) (*common.Void, error) {
 	if !auth.IsRoot(ctx) && !extraService(ctx, req.ObjectType) {
-		return nil, errors.AccessDenied(ctx, "only root can grant stuff atm")
+		return nil, errors.AccessDenied(ctx, "group only root can grant stuff atm")
 	}
 	if req.GroupID == "" {
 		return nil, errors.InvalidArgs(ctx, "missing userid", "Missing userid")
@@ -318,7 +318,7 @@ func (e *objectAuthServer) GrantToGroup(ctx context.Context, req *pb.GrantGroupR
 
 func (e *objectAuthServer) GrantToUser(ctx context.Context, req *pb.GrantUserRequest) (*common.Void, error) {
 	if !auth.IsRoot(ctx) && !extraService(ctx, req.ObjectType) {
-		return nil, errors.AccessDenied(ctx, "only root can grant stuff atm")
+		return nil, errors.AccessDenied(ctx, "user only root can grant stuff atm")
 	}
 	if req.UserID == "" {
 		return nil, errors.InvalidArgs(ctx, "missing userid", "Missing userid")
@@ -554,6 +554,7 @@ func HasAllAccess(userid string, obj pb.OBJECTTYPE) bool {
 	return false
 }
 
+// return true if service may authorise this objecttype
 func extraService(ctx context.Context, t pb.OBJECTTYPE) bool {
 	svc := auth.GetService(ctx)
 	if svc == nil {
@@ -562,6 +563,10 @@ func extraService(ctx context.Context, t pb.OBJECTTYPE) bool {
 	}
 	ruid := auth.GetServiceIDByName("repobuilder.RepoBuilder")
 	if svc.ID == ruid && t == pb.OBJECTTYPE_GitRepository { //repobuilder
+		return true
+	}
+	ruid = auth.GetServiceIDByName("gitserver.GIT2")
+	if svc.ID == ruid && t == pb.OBJECTTYPE_GitRepository {
 		return true
 	}
 	if svc.ID == ruid && t == pb.OBJECTTYPE_Artefact { //repobuilder
@@ -578,6 +583,3 @@ func clearCache() {
 	objaccess_cache.Clear()
 	fmt.Printf("Caches cleared\n")
 }
-
-
-
